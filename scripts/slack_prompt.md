@@ -31,10 +31,11 @@ Workflow Commands:
 - Monitor: `journalctl --user -u brain.service -f`
 - Restart: `systemctl --user restart brain.service`
 
-Output: Return ONLY a JSON object e.g.:
+Output: Return a JSON object with the following structure:
 {{
   "folder": "folder_name",
   "filename": "capture-20260206-1600.md",
   "content": "Full Markdown content with YAML frontmatter including 'category: folder_name'"
 }}
+OR, for questions, just return the answer as a string.
 
