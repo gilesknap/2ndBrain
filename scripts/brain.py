@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # 1. Setup & Environment
 load_dotenv()
-VAULT_PATH = os.path.expanduser("~/Documents/2ndBrain/Inbox")
+VAULT_PATH = os.path.expanduser("~/Documents/2ndBrain/2ndBrainVault")
 os.makedirs(VAULT_PATH, exist_ok=True)
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
