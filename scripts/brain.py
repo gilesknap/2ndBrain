@@ -12,6 +12,10 @@ from pathlib import Path
 
 
 # 1. Setup & Configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 load_dotenv()
 BASE_VAULT_PATH = Path.home() / "Documents" / "2ndBrain"
 # Ensure our core directories exist
@@ -59,7 +63,7 @@ def handle_message(event, say):
         return
 
     text = event.get("text")
-    print(f"📥 Incoming from Slack: {text[:50]}...")
+    logging.info(f"📥 Incoming from Slack: {text[:50]}...")
 
     try:
         # The AI "Refiner" Step
@@ -74,17 +78,16 @@ def handle_message(event, say):
             f.write(data['content'])
 
         # Logging to journalctl
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] Filed to {data['folder']}/{data['filename']} ({token_count} tokens)")
+        logging.info(f"Filed to {data['folder']}/{data['filename']} ({token_count} tokens)")
 
         # Feedback to user in Slack
         say(f"📂 Filed to `{data['folder']}` as `{data['filename']}`. (Used {token_count} tokens)")
 
     except Exception as e:
-        error_msg = f"Error processing message: {str(e)}"
-        print(error_msg)
+        logging.exception("Error processing message")
         say(f"⚠️ Brain Error: {str(e)}")
 
 if __name__ == "__main__":
-    print("⚡️ 2ndBrain Collector is starting up...")
+    logging.info("⚡️ 2ndBrain Collector is starting up...")
     handler = SocketModeHandler(app, os.environ.get("SLACK_APP_TOKEN"))
     handler.start()
