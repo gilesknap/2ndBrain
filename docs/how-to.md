@@ -7,6 +7,4 @@ Practical step-by-step guides for the more experienced user.
 :glob:
 
 how-to/*
-setup_rclone
-setup_slack_app
 ```

@@ -42,7 +42,7 @@ Slack message → listener.py (attachment prep + thread history)
   → reply posted in Slack thread
 ```
 
-See [Architecture](https://github.com/gilesknap/2ndBrain/blob/main/docs/architecture.md) for the full design
+See [Architecture](https://github.com/gilesknap/2ndBrain/blob/main/docs/explanations/architecture.md) for the full design
 including Mermaid diagrams, and [Agent Instructions](https://github.com/gilesknap/2ndBrain/blob/main/AGENTS.md) for comprehensive
 agent instructions.
 
@@ -79,8 +79,8 @@ systemctl --user status brain.service
 journalctl --user -u brain.service -f
 ```
 
-See [Slack App Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/setup_slack_app.md) for Slack app
-creation and OAuth scopes, and [rclone Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/setup_rclone.md)
+See [Slack App Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_slack_app.md) for Slack app
+creation and OAuth scopes, and [rclone Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_rclone.md)
 for rclone configuration details.
 
 ## Documentation
@@ -88,10 +88,10 @@ for rclone configuration details.
 | Document                                                  | Contents                              |
 |-----------------------------------------------------------|---------------------------------------|
 | [AGENTS.md](https://github.com/gilesknap/2ndBrain/blob/main/AGENTS.md)                                    | Full agent instructions & project ref |
-| [Architecture](https://github.com/gilesknap/2ndBrain/blob/main/docs/architecture.md)              | Agent architecture & design           |
-| [Architecture Decisions](https://github.com/gilesknap/2ndBrain/blob/main/docs/architecture-decisions.md) | Architecture Decision Records   |
-| [rclone Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/setup_rclone.md)              | rclone + GPG/pass setup               |
-| [Slack App Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/setup_slack_app.md)        | Slack app creation guide              |
+| [Architecture](https://github.com/gilesknap/2ndBrain/blob/main/docs/explanations/architecture.md)              | Agent architecture & design           |
+| [Architecture Decisions](https://github.com/gilesknap/2ndBrain/blob/main/docs/explanations/decisions) | Architecture Decision Records   |
+| [rclone Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_rclone.md)              | rclone + GPG/pass setup               |
+| [Slack App Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_slack_app.md)        | Slack app creation guide              |
 
 ## License
 

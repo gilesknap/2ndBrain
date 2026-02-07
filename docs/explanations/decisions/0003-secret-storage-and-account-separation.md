@@ -1,11 +1,10 @@
-# Architecture Decision Records
+# 3. Secret Storage and Account Separation
 
-## ADR-001: Secret Storage and Account Separation
+## Status
 
-**Date:** 2026-02-07
-**Status:** Decided
+Accepted
 
-### Context
+## Context
 
 The 2ndBrain server runs on a LAN with no external exposure. It handles
 three categories of secret:
@@ -28,7 +27,7 @@ alternatives:
 3. **Keep current approach** — GPG-encrypted rclone config, plaintext
    `.env` with file permissions.
 
-### Decision
+## Decision
 
 Keep the current approach (option 3). Do not add GPG for Slack/Gemini
 keys, and do not introduce user separation.
@@ -61,7 +60,7 @@ keys, and do not introduce user separation.
   dotfile commits) even if it doesn't help against a compromised user
   session.
 
-### Consequences
+## Consequences
 
 - The main attack surface for prompt injection remains input
   sanitisation: slug/path validation in `vault.py` and ensuring Gemini

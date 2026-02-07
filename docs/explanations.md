@@ -7,6 +7,4 @@ Explanations of how it works and why it works that way.
 :glob:
 
 explanations/*
-architecture
-architecture-decisions
 ```

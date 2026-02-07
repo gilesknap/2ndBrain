@@ -1,5 +1,12 @@
 # 🚀 Universal Rclone Setup: Encrypted & Restricted
 
+```{note}
+Most of this guide is automated by running `./setup-gpg-pass.sh` followed by
+`./install.sh`. The scripts will prompt you to install any missing system
+packages (rclone, fuse3, pass). Read on if you need to understand the
+individual steps or troubleshoot.
+```
+
 This guide provides a secure, portable method for mounting a specific Google Drive folder to a local Linux directory (`~/Documents/2ndBrain`).
 
 ## 1. Prerequisites
