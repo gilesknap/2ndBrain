@@ -93,8 +93,7 @@ def _build_briefing(vault) -> str:
     if backlog:
         pick = random.choice(backlog)
         sections.append(
-            f"*🎬 Maybe today?*\n"
-            f"  • _{pick['title']}_ ({pick['media_type']})"
+            f"*🎬 Maybe today?*\n  • _{pick['title']}_ ({pick['media_type']})"
         )
 
     if not sections:
@@ -146,6 +145,4 @@ def start_scheduler(client, vault):
 
     thread = threading.Thread(target=_scheduler_loop, daemon=True)
     thread.start()
-    logging.info(
-        f"📅 Daily briefing scheduled at {briefing_time} → #{channel}"
-    )
+    logging.info(f"📅 Daily briefing scheduled at {briefing_time} → #{channel}")

@@ -12,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 
 from google import genai
-from google.genai import types
 
 PROMPT_FILE = Path(__file__).parent / "prompt.md"
 

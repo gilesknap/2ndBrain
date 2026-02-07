@@ -117,7 +117,7 @@ class FilingAgent(BaseAgent):
         ]
 
         # Inject persistent directives
-        directives_text = Router._format_directives(context.vault)
+        directives_text = Router.format_directives(context.vault)
         parts.append(f"\n## Directives\n{directives_text}")
 
         parts.append(f"\n## Input\n{context.raw_text}")
