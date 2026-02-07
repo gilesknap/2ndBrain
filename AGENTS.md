@@ -7,14 +7,31 @@ images, PDFs) via Slack; the system auto-categorises them and writes
 structured Markdown with YAML frontmatter into the correct vault folder.
 
 ## Tech Stack & Environment
-- **Runtime:** Python 3.12, managed with `uv`, on Ubuntu 24.04 (headless)
+- **Runtime:** Python 3.12, managed with `uv`, on Ubuntu 24.04
 - **Framework:** Slack Bolt (Socket Mode)
 - **AI SDK:** `google-genai` (new Client-based SDK — NOT the deprecated
   `google-generativeai` package)
 - **AI Model:** `gemini-2.5-flash` — do not downgrade
-- **Vault storage:** rclone mount at `~/Documents/2ndBrain/`
+- **HTTP:** `requests` for Slack file downloads
+- **Scheduling:** `schedule` for daily briefing timer
+- **Vault storage:** rclone to Google Drive at `~/Documents/2ndBrain/`
   (vault root: `~/Documents/2ndBrain/2ndBrainVault/`)
 - **Service manager:** systemd user units (no sudo required)
+- **Secrets:** GPG + `pass` for rclone config encryption
+
+## Deployment Modes
+The system supports two deployment modes via `install.sh`:
+
+| Mode          | Sync method   | Use case                                |
+|---------------|---------------|-----------------------------------------|
+| **Server**    | rclone mount  | Headless machine running the Slack listener |
+| **Workstation** | rclone bisync | Desktop with Obsidian (no listener)     |
+
+- **Server:** FUSE mount provides instant writes. The brain.service
+  listens for Slack messages and writes notes directly to the mount.
+- **Workstation:** bisync every 30s creates real local files, giving
+  Obsidian proper inotify events. rclone mount does NOT generate
+  inotify events — this is why bisync is required for Obsidian.
 
 ## Project Structure
 ```
@@ -28,11 +45,19 @@ src/brain/
 ├── briefing.py      # Daily morning summary posted to Slack
 └── prompt.md        # System prompt sent to Gemini
 service-units/
-└── brain.service    # systemd user service unit
-pyproject.toml       # uv/pip metadata and dependencies
-.env                 # SLACK_BOT_TOKEN, SLACK_APP_TOKEN, GEMINI_API_KEY
-                     #   (optional: BRIEFING_CHANNEL, BRIEFING_TIME)
+├── brain.service                   # Slack listener (server, template with @@PROJECT_DIR@@)
+├── rclone-2ndbrain.service         # rclone FUSE mount (server)
+├── rclone-2ndbrain-bisync.service  # rclone bisync oneshot (workstation)
+└── rclone-2ndbrain-bisync.timer    # 30s bisync timer (workstation)
+docs/
+├── setup_rclone.md   # rclone + GPG/pass setup guide
+└── setup_slack_app.md # Slack app creation + OAuth scopes guide
+install.sh           # Two-mode installer (--server / --workstation)
+setup-gpg-pass.sh    # GPG key, pass, keygrip preset automation
 restart.sh           # Convenience script for systemd reload/restart/logs
+pyproject.toml       # uv/pip metadata and dependencies
+.env                 # Runtime secrets (not committed)
+.env.template        # Template for .env
 ```
 
 ## Vault Categories
@@ -149,13 +174,56 @@ When adding new categories or frontmatter fields, update both
 `_*_base()` method in `vault.py` (so the dashboard displays them).
 Delete the old `.base` file from the vault to trigger regeneration.
 
+## Service Architecture
+
+### brain.service (server only)
+- **Template:** `service-units/brain.service` uses `@@PROJECT_DIR@@`
+  placeholders, substituted by `install.sh` via `sed` at install time.
+- **Mount dependency:** `Requires=rclone-2ndbrain.service` — won't start
+  if rclone fails. `ExecStartPre` polls for up to 30s waiting for the
+  mount directory to appear.
+- **Env loading:** `.env` is loaded both by systemd (`EnvironmentFile`)
+  and Python (`load_dotenv()`).
+- **Invocation:** `.venv/bin/python -m src.brain.app` (also available as
+  `brain` console script via `pyproject.toml [project.scripts]`).
+
+### rclone-2ndbrain.service (server only)
+- FUSE mount with `--vfs-cache-mode full`, `--poll-interval 15s`,
+  `--dir-cache-time 5s`.
+- Uses `--password-command "pass rclone/gdrive-vault"` — requires
+  GPG/pass infrastructure (see `setup-gpg-pass.sh`).
+- `ExecStop` does a clean `fusermount -u`.
+
+### rclone-2ndbrain-bisync.service + .timer (workstation only)
+- `Type=oneshot` — runs bisync and exits (fired by timer every 30s).
+- `--resilient --recover --conflict-resolve newer` for robustness.
+- First run needs `--resync` to establish baseline (handled by `install.sh`).
+
+### Stale mount recovery
+If rclone crashes and leaves a dead FUSE mount ("Transport endpoint not
+connected"), use: `fusermount -uz ~/Documents/2ndBrain` then restart
+the service.
+
+## Installation
+1. **GPG + pass:** Run `./setup-gpg-pass.sh` first on any new machine.
+   This creates the GPG key, password store, and keygrip preset needed
+   for rclone to decrypt its config non-interactively.
+2. **rclone remote:** Configure via `rclone config` — see
+   `docs/setup_rclone.md`.
+3. **Install services:** `./install.sh --server` or `./install.sh --workstation`.
+4. **Slack app (server only):** Create the app and get tokens — see
+   `docs/setup_slack_app.md`. Fill in `.env` from `.env.template`.
+5. **Enable linger (server only):** `sudo loginctl enable-linger $USER`
+   so services run on boot without a login session.
+
 ## Common Workflows
 - **Update code:** After modifying any `src/brain/*.py` file, run
   `systemctl --user restart brain.service` or use `./restart.sh`.
 - **Monitor logs:** `journalctl --user -u brain.service -f`
-- **Check rclone:** Ensure the mount is active at `~/Documents/2ndBrain/`
-  before attempting file operations. The vault init checks this at startup
-  and fails fast if the mount is missing.
+- **Check rclone (server):** Ensure the mount is active at
+  `~/Documents/2ndBrain/` before attempting file operations.
+- **Check bisync (workstation):** `systemctl --user list-timers` to
+  verify the timer is active.
 - **Regenerate a .base file:** Delete it from the vault, restart the service.
 - **Add a new vault category:** Add to `CATEGORIES` dict in `vault.py`,
   add classification rules in `prompt.md`, add a `_*_base()` method,
@@ -163,6 +231,10 @@ Delete the old `.base` file from the vault to trigger regeneration.
 - **Change the daily briefing time:** Set `BRIEFING_TIME=08:00` in `.env`.
   Set `BRIEFING_CHANNEL` to a Slack channel ID to enable it.
 - **Install deps:** `uv sync` (not pip install)
+- **Migrate to new machine:** Copy `~/.gnupg/`, `~/.password-store/`,
+  and `~/.config/rclone/rclone.conf` from the old machine, then run
+  `./setup-gpg-pass.sh` and `./install.sh`. See `docs/setup_rclone.md`
+  section 6 for details.
 
 ## Environment Variables (.env)
 | Variable          | Required | Description                                |
@@ -173,11 +245,23 @@ Delete the old `.base` file from the vault to trigger regeneration.
 | BRIEFING_CHANNEL  | No       | Slack channel ID for daily briefing        |
 | BRIEFING_TIME     | No       | Time for daily briefing (default: "07:00") |
 
-## Slack Bot Scopes Required
-The Slack app must have these OAuth scopes:
-- `chat:write` — send messages
-- `files:read` — download file attachments
-- Socket Mode must be enabled (uses app-level token)
+## Slack Bot Configuration
+The Slack app requires Socket Mode enabled with an app-level token
+(scope: `connections:write`) and the `message.im` event subscription.
+
+### Required Bot Token Scopes
+| Scope                | Purpose                                        |
+|----------------------|------------------------------------------------|
+| `app_mentions:read`  | View messages that mention @2ndBrain           |
+| `channels:history`   | View messages in public channels app is in     |
+| `chat:write`         | Send messages as @2ndBrain                     |
+| `files:read`         | Download file attachments from conversations   |
+| `groups:history`     | View messages in private channels app is in    |
+| `im:history`         | View direct messages with the bot              |
+| `incoming-webhook`   | Post messages to specific channels (briefings) |
+
+After adding or changing scopes, you must **reinstall the app** to the
+workspace for changes to take effect. See `docs/setup_slack_app.md`.
 
 ## Boundaries
 - Never hardcode API keys; always use `os.environ` or `.env`.
