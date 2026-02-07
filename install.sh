@@ -64,18 +64,12 @@ done
 if ! pass show rclone/gdrive-vault &>/dev/null; then
     echo "ERROR: rclone config password not found in pass store."
     echo
-    echo "  You need to set up GPG + pass and store the rclone password."
-    echo "  See docs/setup_rclone.md for full instructions. Quick summary:"
+    echo "  Run the GPG + pass setup script first:"
+    echo "    ./setup-gpg-pass.sh"
     echo
-    echo "    # 1. Ensure you have a GPG key"
-    echo "    gpg --list-keys"
-    echo "    # If none, create one:  gpg --full-generate-key"
-    echo
-    echo "    # 2. Initialise pass with your GPG email"
-    echo "    pass init \"your-email@example.com\""
-    echo
-    echo "    # 3. Store the rclone config password"
-    echo "    pass insert rclone/gdrive-vault"
+    echo "  This will create a GPG key, initialise pass, store the rclone"
+    echo "  password, and configure the keygrip preset for headless operation."
+    echo "  See docs/setup_rclone.md for full details."
     echo
     echo "  Then re-run this installer."
     exit 1
