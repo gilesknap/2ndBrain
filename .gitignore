@@ -72,3 +72,4 @@ lockfiles/
 
 # sensitive files
 .env
+migrate_progress.json
