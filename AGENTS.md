@@ -84,9 +84,10 @@ startup by `vault.py._ensure_base_files()` and never overwritten.
 Obsidian `.base` files are YAML documents with three top-level keys:
 
 ```yaml
-filters:                          # Which files to include
-  - 'file.inFolder("Actions")'   # folder filter
-  - 'file.ext == "md"'           # only markdown
+filters:                          # MUST use and:/or:/not: — NEVER a plain list
+  and:
+    - 'file.inFolder("Actions")'
+    - 'file.ext == "md"'
 
 properties:                       # Columns from YAML frontmatter
   title:
@@ -97,7 +98,7 @@ properties:                       # Columns from YAML frontmatter
 views:                            # One or more table/board views
   - type: table
     name: "Open Actions"
-    filters:                      # Per-view additional filters
+    filters:                      # Per-view filters also require and:/or:/not:
       and:
         - 'status != "done"'
         - 'status != "completed"'
@@ -111,11 +112,23 @@ views:                            # One or more table/board views
 ```
 
 ### Filter Syntax
+**CRITICAL:** All `filters:` blocks — both top-level and per-view — MUST be
+an object with exactly one key: `and:`, `or:`, or `not:`. A plain YAML list
+under `filters:` will cause an Obsidian parse error:
+> "filters" may only have one of an "and", "or", or "not" keys.
+
+Even a single filter condition must be wrapped:
+```yaml
+filters:
+  and:
+    - 'file.ext == "md"'
+```
+
+Available filter expressions:
 - `file.inFolder("FolderName")` — match files in a specific vault folder
 - `file.ext == "md"` — file extension check
 - `file.mtime > now() - "7 days"` — recency filter
 - `status != "done"` — frontmatter property comparison
-- Combine with `and:` / `or:` blocks for compound filters
 
 ### Property References
 - `note.<property>` — references a YAML frontmatter key
