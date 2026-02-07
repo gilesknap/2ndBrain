@@ -34,7 +34,7 @@ Workflow Commands:
 Output: Return a JSON object with the following structure:
 {{
   "folder": "folder_name",
-  "filename": "capture-20260206-1600.md",
+  "filename": "capture-YYYYMMDD-HHmm.md",
   "content": "Full Markdown content with YAML frontmatter including 'category: folder_name'"
 }}
 OR, for questions, just return the answer as a string.
