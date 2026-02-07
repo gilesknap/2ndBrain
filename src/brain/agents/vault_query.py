@@ -80,7 +80,11 @@ class VaultQueryAgent(BaseAgent):
             logging.error("VaultQuery agent Gemini error: %s", e)
             raise
 
-        tokens = response.usage_metadata.total_token_count
+        tokens = (
+            (response.usage_metadata.total_token_count or 0)
+            if response.usage_metadata
+            else 0
+        )
         logging.info(
             "VaultQuery: %d matches, %d tokens",
             len(matches),
@@ -88,7 +92,7 @@ class VaultQueryAgent(BaseAgent):
         )
 
         return AgentResult(
-            response_text=response.text,
+            response_text=response.text or "",
             tokens_used=tokens,
         )
 
@@ -152,7 +156,7 @@ class VaultQueryAgent(BaseAgent):
         ]
 
         # Inject persistent directives
-        directives_text = Router._format_directives(context.vault)
+        directives_text = Router.format_directives(context.vault)
         parts.append(f"\n## Directives\n{directives_text}")
 
         # Include conversation history for threaded follow-ups

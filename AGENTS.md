@@ -195,7 +195,7 @@ inside the vault. Users manage them via Slack:
 
 Directives are loaded by `Vault.get_directives()` and injected into the
 system prompts of the **router**, **filing agent**, and **vault query
-agent** via `Router._format_directives()`. This ensures all agents follow
+agent** via `Router.format_directives()`. This ensures all agents follow
 the user's rules when classifying, filing, and answering queries.
 
 The `_brain/` directory is created automatically on startup. Directives

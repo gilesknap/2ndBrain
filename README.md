@@ -1,9 +1,18 @@
+[![CI](https://github.com/gilesknap/2ndBrain/actions/workflows/ci.yml/badge.svg)](https://github.com/gilesknap/2ndBrain/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/gilesknap/2ndBrain/branch/main/graph/badge.svg)](https://codecov.io/gh/gilesknap/2ndBrain)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
 # 2ndBrain — Gemini-Powered Quick Capture for Obsidian
 
 A Slack-driven quick-capture system that uses **Gemini AI** to classify,
 enrich, and file notes into an **Obsidian vault**. Send messages — text,
 images, PDFs — via Slack and they are automatically categorised with full
 YAML frontmatter into the correct vault folder.
+
+Source          | <https://github.com/gilesknap/2ndBrain>
+:---:           | :---:
+Documentation   | <https://gilesknap.github.io/2ndBrain>
+Releases        | <https://github.com/gilesknap/2ndBrain/releases>
 
 ## Features
 
@@ -33,8 +42,8 @@ Slack message → listener.py (attachment prep + thread history)
   → reply posted in Slack thread
 ```
 
-See [docs/architecture.md](docs/architecture.md) for the full design
-including Mermaid diagrams, and [AGENTS.md](AGENTS.md) for comprehensive
+See [Architecture](https://github.com/gilesknap/2ndBrain/blob/main/docs/explanations/architecture.md) for the full design
+including Mermaid diagrams, and [Agent Instructions](https://github.com/gilesknap/2ndBrain/blob/main/AGENTS.md) for comprehensive
 agent instructions.
 
 ## Tech Stack
@@ -70,20 +79,24 @@ systemctl --user status brain.service
 journalctl --user -u brain.service -f
 ```
 
-See [docs/setup_slack_app.md](docs/setup_slack_app.md) for Slack app
-creation and OAuth scopes, and [docs/setup_rclone.md](docs/setup_rclone.md)
+See [Slack App Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_slack_app.md) for Slack app
+creation and OAuth scopes, and [rclone Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_rclone.md)
 for rclone configuration details.
 
 ## Documentation
 
 | Document                                                  | Contents                              |
 |-----------------------------------------------------------|---------------------------------------|
-| [AGENTS.md](AGENTS.md)                                    | Full agent instructions & project ref |
-| [docs/architecture.md](docs/architecture.md)              | Agent architecture & design           |
-| [docs/architecture-decisions.md](docs/architecture-decisions.md) | Architecture Decision Records   |
-| [docs/setup_rclone.md](docs/setup_rclone.md)              | rclone + GPG/pass setup               |
-| [docs/setup_slack_app.md](docs/setup_slack_app.md)        | Slack app creation guide              |
+| [AGENTS.md](https://github.com/gilesknap/2ndBrain/blob/main/AGENTS.md)                                    | Full agent instructions & project ref |
+| [Architecture](https://github.com/gilesknap/2ndBrain/blob/main/docs/explanations/architecture.md)              | Agent architecture & design           |
+| [Architecture Decisions](https://github.com/gilesknap/2ndBrain/blob/main/docs/explanations/decisions) | Architecture Decision Records   |
+| [rclone Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_rclone.md)              | rclone + GPG/pass setup               |
+| [Slack App Setup](https://github.com/gilesknap/2ndBrain/blob/main/docs/how-to/setup_slack_app.md)        | Slack app creation guide              |
 
 ## License
 
-See [LICENSE.md](LICENSE.md).
+See [LICENSE](https://github.com/gilesknap/2ndBrain/blob/main/LICENSE).
+
+<!-- README only content. Anything below this line won't be included in index.md -->
+
+See https://gilesknap.github.io/2ndBrain for more detailed documentation.

@@ -37,7 +37,7 @@ class Router:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _format_directives(vault) -> str:
+    def format_directives(vault) -> str:
         """Format vault directives as a bullet list for injection into prompts."""
         directives = vault.get_directives() if vault else []
         if not directives:
@@ -95,7 +95,7 @@ class Router:
         prompt = (
             prompt_template.replace("{{agent_descriptions}}", agent_descriptions)
             .replace("{{current_time}}", datetime.now().strftime("%Y-%m-%d %H:%M"))
-            .replace("{{directives}}", self._format_directives(context.vault))
+            .replace("{{directives}}", self.format_directives(context.vault))
         )
 
         parts: list = [prompt, f"\n## User Message\n{context.raw_text}"]
@@ -121,9 +121,13 @@ class Router:
             logging.error("Router Gemini error: %s", e)
             return {"intent": self.default_agent}
 
-        tokens = response.usage_metadata.total_token_count
+        tokens = (
+            (response.usage_metadata.total_token_count or 0)
+            if response.usage_metadata
+            else 0
+        )
 
-        data = _extract_json(response.text)
+        data = _extract_json(response.text or "")
         if data is None:
             logging.warning(
                 "Router returned unparseable response, defaulting to '%s'",
