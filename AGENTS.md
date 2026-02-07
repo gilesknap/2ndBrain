@@ -58,8 +58,10 @@ service-units/
 ├── rclone-2ndbrain-bisync.service  # rclone bisync oneshot (workstation)
 └── rclone-2ndbrain-bisync.timer    # 30s bisync timer (workstation)
 docs/
-├── setup_rclone.md   # rclone + GPG/pass setup guide
-└── setup_slack_app.md # Slack app creation + OAuth scopes guide
+├── architecture.md        # Agent architecture & design documentation
+├── architecture-decisions.md # Architecture Decision Records (ADRs)
+├── setup_rclone.md        # rclone + GPG/pass setup guide
+└── setup_slack_app.md     # Slack app creation + OAuth scopes guide
 install.sh           # Two-mode installer (--server / --workstation)
 setup-gpg-pass.sh    # GPG key, pass, keygrip preset automation
 restart.sh           # Convenience script for systemd reload/restart/logs
@@ -181,6 +183,23 @@ Slack message → listener.py (attachment prep + thread history fetch)
 
 4. **Update this file** with the new intent in the Registered Agents
    table above.
+
+## Directives System (Persistent Memory)
+
+Directives are persistent behaviour rules stored in `_brain/directives.md`
+inside the vault. Users manage them via Slack:
+
+- **Add:** "remember: always tag cooking recipes with #cooking"
+- **Remove:** "forget directive #2"
+- **List:** "list directives" or "what are your directives"
+
+Directives are loaded by `Vault.get_directives()` and injected into the
+system prompts of the **router**, **filing agent**, and **vault query
+agent** via `Router._format_directives()`. This ensures all agents follow
+the user's rules when classifying, filing, and answering queries.
+
+The `_brain/` directory is created automatically on startup. Directives
+persist across restarts because they live in the vault (synced via rclone).
 
 ## Gemini Integration Details
 - **Prompt:** Lives in `src/brain/prompt.md` — edit this to change

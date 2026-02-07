@@ -12,14 +12,16 @@ registering the instance — the router prompt updates itself automatically.
 
 ```mermaid
 flowchart TD
-    A[Slack Message] --> B[listener.py<br/>Attachment prep]
+    A[Slack Message] --> B[listener.py<br/>Attachment prep +<br/>thread history fetch]
     B --> C[Router<br/>Lightweight Gemini call<br/>classifies intent]
     C -->|intent: file| D[FilingAgent<br/>Classify & archive content<br/>gemini-2.5-flash]
     C -->|intent: vault_query| E[VaultQueryAgent<br/>Search vault + query Gemini<br/>gemini-2.5-flash]
+    C -->|intent: memory| M[MemoryAgent<br/>Add/remove/list directives<br/>No Gemini call]
     C -->|intent: question| F[Direct answer<br/>from router response]
     C -->|intent: future| G[Future agents<br/>Subclass BaseAgent]
     D --> H[Save to vault + reply]
     E --> I[Text answer in Slack]
+    M --> I
     F --> I
     G --> H
     G --> I
@@ -131,6 +133,7 @@ is made.
 |---------------|------------------------------------------------------------|
 | Intent name   | `question`                                                 |
 | Gemini calls  | **1 total** (router only)                                  |
+
 ### MemoryAgent (`agents/memory.py`)
 
 Manages persistent directives (long-term memory). The user can tell the
@@ -140,7 +143,7 @@ vault as bullet points and are injected into all agent prompts so they
 influence filing, queries, and routing decisions.
 
 | Property      | Value                                                      |
-|---------------|------------------------------------------------------------||
+|---------------|------------------------------------------------------------|
 | Intent name   | `memory`                                                   |
 | Model         | None (no Gemini call — pure CRUD)                          |
 | Storage       | `_brain/directives.md` in vault root                       |
@@ -159,6 +162,7 @@ users to customise the bot's behaviour over time, e.g.:
 
 Directives persist across restarts because they live in the vault (synced
 via rclone like all other vault content).
+
 ## Key Components
 
 ```
