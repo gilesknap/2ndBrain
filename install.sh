@@ -60,6 +60,36 @@ for cmd in "${REQUIRED_CMDS[@]}"; do
     fi
 done
 
+# Check rclone config password is in pass
+if ! pass show rclone/gdrive-vault &>/dev/null; then
+    echo "ERROR: rclone config password not found in pass store."
+    echo
+    echo "  You need to set up GPG + pass and store the rclone password."
+    echo "  See docs/setup_rclone.md for full instructions. Quick summary:"
+    echo
+    echo "    # 1. Ensure you have a GPG key"
+    echo "    gpg --list-keys"
+    echo "    # If none, create one:  gpg --full-generate-key"
+    echo
+    echo "    # 2. Initialise pass with your GPG email"
+    echo "    pass init \"your-email@example.com\""
+    echo
+    echo "    # 3. Store the rclone config password"
+    echo "    pass insert rclone/gdrive-vault"
+    echo
+    echo "  Then re-run this installer."
+    exit 1
+fi
+
+# Check rclone remote exists
+if ! rclone listremotes --password-command "pass rclone/gdrive-vault" 2>/dev/null | grep -q "^gdrive-vault:"; then
+    echo "ERROR: rclone remote 'gdrive-vault:' not found."
+    echo "  Run 'rclone config' to set it up. See docs/setup_rclone.md."
+    exit 1
+fi
+
+echo "→ rclone remote and password store OK."
+
 # -----------------------------------------------------------------------
 # 2. Python environment (server only)
 # -----------------------------------------------------------------------
