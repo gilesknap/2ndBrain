@@ -1,0 +1,840 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>🚀 Universal Rclone Setup: Encrypted &amp; Restricted &#8212; 2ndBrain 0.1.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f9f58732" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/setup_rclone';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/2ndBrain/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.1.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Slack App Setup" href="setup_slack_app.html" />
+    <link rel="prev" title="Contribute to the project" href="contribute.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">2ndBrain</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/2ndBrain" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/2ndBrain" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/2ndBrain" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/2ndBrain" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">🚀 Universal Rclone Setup: Encrypted &amp; Restricted</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup_slack_app.html">Slack App Setup</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">🚀 Universal Rclone Setup: Encrypted &amp; Restricted</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="universal-rclone-setup-encrypted-restricted">
+<h1>🚀 Universal Rclone Setup: Encrypted &amp; Restricted<a class="headerlink" href="#universal-rclone-setup-encrypted-restricted" title="Link to this heading">#</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Most of this guide is automated by running <code class="docutils literal notranslate"><span class="pre">./setup-gpg-pass.sh</span></code> followed by
+<code class="docutils literal notranslate"><span class="pre">./install.sh</span></code>. The scripts will prompt you to install any missing system
+packages (rclone, fuse3, pass). Read on if you need to understand the
+individual steps or troubleshoot.</p>
+</div>
+<p>This guide provides a secure, portable method for mounting a specific Google Drive folder to a local Linux directory (<code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain</span></code>).</p>
+<section id="prerequisites">
+<h2>1. Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<p>Install the required system tools:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ubuntu/Debian/Mint</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
+
+<span class="c1"># RHEL/Fedora/CentOS</span>
+sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="configuration-strategy">
+<h2>2. Configuration Strategy<a class="headerlink" href="#configuration-strategy" title="Link to this heading">#</a></h2>
+<p>To ensure the mount is both secure and portable, we use three key principles:</p>
+<ol class="arabic simple">
+<li><p><strong>Config Encryption:</strong> The <code class="docutils literal notranslate"><span class="pre">rclone.conf</span></code> is password-protected.</p></li>
+<li><p><strong>Root Isolation:</strong> Use the <code class="docutils literal notranslate"><span class="pre">root_folder_id</span></code> in the config to lock access to a single folder.</p></li>
+<li><p><strong>GPG Encryption:</strong> Store the password encrypted with GPG using <code class="docutils literal notranslate"><span class="pre">pass</span></code> and <code class="docutils literal notranslate"><span class="pre">gpg-agent</span></code>.</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="security-gpg-encrypted-password-storage">
+<h2>3. Security: GPG-Encrypted Password Storage<a class="headerlink" href="#security-gpg-encrypted-password-storage" title="Link to this heading">#</a></h2>
+<p>We’ll use <code class="docutils literal notranslate"><span class="pre">pass</span></code> (the standard Unix password manager) with GPG encryption, configured with <code class="docutils literal notranslate"><span class="pre">gpg-agent</span></code> to cache the passphrase for automated access.</p>
+<section id="step-1-create-or-use-existing-gpg-key">
+<h3>Step 1: Create or Use Existing GPG Key<a class="headerlink" href="#step-1-create-or-use-existing-gpg-key" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if you already have a GPG key</span>
+gpg<span class="w"> </span>--list-keys
+
+<span class="c1"># If you don&#39;t have one, create it (follow prompts, set a strong passphrase)</span>
+gpg<span class="w"> </span>--full-generate-key
+</pre></div>
+</div>
+</section>
+<section id="step-2-configure-gpg-agent-for-long-caching">
+<h3>Step 2: Configure gpg-agent for Long Caching<a class="headerlink" href="#step-2-configure-gpg-agent-for-long-caching" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure gpg-agent to cache passphrases indefinitely</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.gnupg
+cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.gnupg/gpg-agent.conf<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">default-cache-ttl 34560000</span>
+<span class="s">max-cache-ttl 34560000</span>
+<span class="s">allow-preset-passphrase</span>
+<span class="s">EOF</span>
+
+<span class="c1"># Restart gpg-agent to apply settings</span>
+gpgconf<span class="w"> </span>--kill<span class="w"> </span>gpg-agent
+gpg-agent<span class="w"> </span>--daemon
+</pre></div>
+</div>
+</section>
+<section id="step-3-initialize-pass-and-store-password">
+<h3>Step 3: Initialize pass and Store Password<a class="headerlink" href="#step-3-initialize-pass-and-store-password" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize pass with your GPG key (use the email from gpg --list-keys)</span>
+pass<span class="w"> </span>init<span class="w"> </span><span class="s2">&quot;your-email@example.com&quot;</span>
+
+<span class="c1"># Store the rclone config password</span>
+pass<span class="w"> </span>insert<span class="w"> </span>rclone/gdrive-vault
+</pre></div>
+</div>
+</section>
+<section id="step-4-setup-automatic-passphrase-preset-at-login">
+<h3>Step 4: Setup Automatic Passphrase Preset at Login<a class="headerlink" href="#step-4-setup-automatic-passphrase-preset-at-login" title="Link to this heading">#</a></h3>
+<p>Get your GPG key’s keygrip and create a preset script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the keygrip (avoid storing in history by using redirection)</span>
+gpg<span class="w"> </span>--with-keygrip<span class="w"> </span>-K<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A1<span class="w"> </span><span class="s2">&quot;ssb&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-1<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $3}&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/keygrip.txt
+
+<span class="c1"># View it to verify</span>
+cat<span class="w"> </span>/tmp/keygrip.txt
+
+<span class="c1"># Create a preset script (will prompt for your GPG passphrase)</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.local/bin
+cat<span class="w"> </span>&gt;<span class="w"> </span>~/.local/bin/preset-gpg-passphrase.sh<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">#!/bin/bash</span>
+<span class="s"># Read keygrip from file</span>
+<span class="s">KEYGRIP=$(cat ~/.gnupg/keygrip.txt)</span>
+
+<span class="s"># Prompt for passphrase securely (won&#39;t echo to screen)</span>
+<span class="s">read -sp &quot;Enter GPG passphrase: &quot; GPG_PASS</span>
+<span class="s">echo</span>
+
+<span class="s"># Preset the passphrase</span>
+<span class="s">echo &quot;$GPG_PASS&quot; | /usr/lib/gnupg/gpg-preset-passphrase --preset &quot;$KEYGRIP&quot;</span>
+<span class="s">EOF</span>
+
+chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/preset-gpg-passphrase.sh
+
+<span class="c1"># Move keygrip to permanent location</span>
+mv<span class="w"> </span>/tmp/keygrip.txt<span class="w"> </span>~/.gnupg/keygrip.txt
+chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/.gnupg/keygrip.txt
+</pre></div>
+</div>
+</section>
+<section id="step-5-add-to-login-script">
+<h3>Step 5: Add to Login Script<a class="headerlink" href="#step-5-add-to-login-script" title="Link to this heading">#</a></h3>
+<p>Add this to your <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code> or <code class="docutils literal notranslate"><span class="pre">~/.profile</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Auto-preset GPG passphrase on login (run once per session)</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$GPG_PRESET_DONE</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-f<span class="w"> </span>~/.local/bin/preset-gpg-passphrase.sh<span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">        </span>~/.local/bin/preset-gpg-passphrase.sh
+<span class="w">        </span><span class="nb">export</span><span class="w"> </span><span class="nv">GPG_PRESET_DONE</span><span class="o">=</span><span class="m">1</span>
+<span class="w">    </span><span class="k">fi</span>
+<span class="k">fi</span>
+</pre></div>
+</div>
+<p>Now when you login via SSH, you’ll be prompted once for your GPG passphrase, and it will be cached for the systemd service to use.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="systemd-service">
+<h2>4. Systemd Service<a class="headerlink" href="#systemd-service" title="Link to this heading">#</a></h2>
+<p>Create the systemd service file at <code class="docutils literal notranslate"><span class="pre">~/.config/systemd/user/rclone-2ndbrain.service</span></code>. It uses specifiers (<code class="docutils literal notranslate"><span class="pre">%U</span></code>, <code class="docutils literal notranslate"><span class="pre">%h</span></code>) to work on any machine regardless of username or UID.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the systemd user directory if it doesn&#39;t exist</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.config/systemd/user
+
+<span class="c1"># Create the service file</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>~/.config/systemd/user/rclone-2ndbrain.service<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">[Unit]</span>
+<span class="s">Description=RClone Mount for 2ndBrain</span>
+<span class="s">After=network-online.target</span>
+
+<span class="s">[Service]</span>
+<span class="s">Type=simple</span>
+<span class="s"># Note: &#39;gdrive-vault:&#39; points to the root_folder_id set in config</span>
+<span class="s">ExecStart=/usr/bin/rclone mount gdrive-vault: %h/Documents/2ndBrain \</span>
+<span class="s">  --password-command &quot;pass rclone/gdrive-vault&quot; \</span>
+<span class="s">  --vfs-cache-mode full \</span>
+<span class="s">  --vfs-cache-max-age 24h \</span>
+<span class="s">  --vfs-cache-max-size 10G</span>
+<span class="s">ExecStop=/usr/bin/fusermount -u %h/Documents/2ndBrain</span>
+<span class="s">Restart=on-failure</span>
+
+<span class="s">[Install]</span>
+<span class="s">WantedBy=default.target</span>
+<span class="s">EOF</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="deployment-maintenance">
+<h2>5. Deployment &amp; Maintenance<a class="headerlink" href="#deployment-maintenance" title="Link to this heading">#</a></h2>
+<section id="launching-the-system">
+<h3>Launching the System<a class="headerlink" href="#launching-the-system" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the mount point directory</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/Documents/2ndBrain
+
+<span class="c1"># Enable lingering to allow service to run on boot without login</span>
+sudo<span class="w"> </span>loginctl<span class="w"> </span>enable-linger<span class="w"> </span><span class="nv">$USER</span>
+
+<span class="c1"># Reload systemd and start the service</span>
+systemctl<span class="w"> </span>--user<span class="w"> </span>daemon-reload
+systemctl<span class="w"> </span>--user<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>rclone-2ndbrain.service
+
+<span class="c1"># Check the status</span>
+systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>rclone-2ndbrain.service
+</pre></div>
+</div>
+</section>
+<section id="the-nuclear-reset-for-directory-busy-errors">
+<h3>The “Nuclear” Reset (For ‘Directory Busy’ errors)<a class="headerlink" href="#the-nuclear-reset-for-directory-busy-errors" title="Link to this heading">#</a></h3>
+<p>If the mount hangs or shows as “already mounted,” run this clean-up:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Stop the process</span>
+systemctl<span class="w"> </span>--user<span class="w"> </span>stop<span class="w"> </span>rclone-2ndbrain.service
+
+<span class="c1"># 2. Force Lazy Unmount</span>
+sudo<span class="w"> </span>umount<span class="w"> </span>-l<span class="w"> </span>~/Documents/2ndBrain
+
+<span class="c1"># 3. Clear VFS Cache</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>~/.cache/rclone/vfs/gdrive-vault/
+
+<span class="c1"># 4. Restart</span>
+systemctl<span class="w"> </span>--user<span class="w"> </span>start<span class="w"> </span>rclone-2ndbrain.service
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="portability-moving-to-machine-2">
+<h2>6. Portability (Moving to Machine 2)<a class="headerlink" href="#portability-moving-to-machine-2" title="Link to this heading">#</a></h2>
+<p>To replicate this setup on a new machine:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">old_machine</span><span class="o">=</span><span class="s2">&quot;user@old_machine_ip&quot;</span><span class="w">  </span><span class="c1"># Replace with actual username and IP</span>
+
+<span class="c1"># Install dependencies</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
+
+<span class="c1"># Create necessary directories</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.config/rclone
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.config/systemd/user
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/.local/bin
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/Documents/2ndBrain
+
+<span class="c1"># Copy rclone config and systemd service</span>
+scp<span class="w"> </span><span class="nv">$old_machine</span>:~/.config/rclone/rclone.conf<span class="w"> </span>~/.config/rclone/
+scp<span class="w"> </span><span class="nv">$old_machine</span>:~/.config/systemd/user/rclone-2ndbrain.service<span class="w"> </span>~/.config/systemd/user/
+
+<span class="c1"># Copy GPG keys and password store</span>
+scp<span class="w"> </span>-r<span class="w"> </span><span class="nv">$old_machine</span>:~/.gnupg<span class="w"> </span>~/
+scp<span class="w"> </span>-r<span class="w"> </span><span class="nv">$old_machine</span>:~/.password-store<span class="w"> </span>~/
+
+<span class="c1"># Copy the preset passphrase script</span>
+scp<span class="w"> </span><span class="nv">$old_machine</span>:~/.local/bin/preset-gpg-passphrase.sh<span class="w"> </span>~/.local/bin/
+chmod<span class="w"> </span>+x<span class="w"> </span>~/.local/bin/preset-gpg-passphrase.sh
+
+<span class="c1"># Fix permissions</span>
+chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>~/.gnupg
+chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>~/.password-store
+
+<span class="c1"># Add the auto-preset to ~/.bashrc (if not already there)</span>
+cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+
+<span class="s"># Auto-preset GPG passphrase on login (run once per session)</span>
+<span class="s">if [ -z &quot;$GPG_PRESET_DONE&quot; ]; then</span>
+<span class="s">    if [ -f ~/.local/bin/preset-gpg-passphrase.sh ]; then</span>
+<span class="s">        ~/.local/bin/preset-gpg-passphrase.sh</span>
+<span class="s">        export GPG_PRESET_DONE=1</span>
+<span class="s">    fi</span>
+<span class="s">fi</span>
+<span class="s">EOF</span>
+</pre></div>
+</div>
+<p><strong>Test the setup:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Logout and login again (to trigger the bashrc preset)</span>
+<span class="c1"># Or manually run the preset script once</span>
+~/.local/bin/preset-gpg-passphrase.sh
+
+<span class="c1"># Verify you can access the password without prompts</span>
+pass<span class="w"> </span>rclone/gdrive-vault
+
+<span class="c1"># Start the service</span>
+systemctl<span class="w"> </span>--user<span class="w"> </span>daemon-reload
+systemctl<span class="w"> </span>--user<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>rclone-2ndbrain.service
+
+<span class="c1"># Check status</span>
+systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>rclone-2ndbrain.service
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="contribute.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Contribute to the project</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="setup_slack_app.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Slack App Setup</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">1. Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-strategy">2. Configuration Strategy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#security-gpg-encrypted-password-storage">3. Security: GPG-Encrypted Password Storage</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-create-or-use-existing-gpg-key">Step 1: Create or Use Existing GPG Key</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-configure-gpg-agent-for-long-caching">Step 2: Configure gpg-agent for Long Caching</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-initialize-pass-and-store-password">Step 3: Initialize pass and Store Password</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-setup-automatic-passphrase-preset-at-login">Step 4: Setup Automatic Passphrase Preset at Login</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-add-to-login-script">Step 5: Add to Login Script</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#systemd-service">4. Systemd Service</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-maintenance">5. Deployment &amp; Maintenance</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#launching-the-system">Launching the System</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-nuclear-reset-for-directory-busy-errors">The “Nuclear” Reset (For ‘Directory Busy’ errors)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#portability-moving-to-machine-2">6. Portability (Moving to Machine 2)</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/2ndBrain/edit/0.1.0/docs/how-to/setup_rclone.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/how-to/setup_rclone.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
