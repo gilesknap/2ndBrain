@@ -404,20 +404,21 @@ class Vault:
     # ------------------------------------------------------------------
 
     def _ensure_base_files(self):
-        """Generate Obsidian .base files if they don't already exist."""
+        """Generate Obsidian .base files and Dashboard.md if they don't exist."""
         bases = {
             "Projects/Projects.base": self._projects_base(),
             "Actions/Actions.base": self._actions_base(),
             "Media/Media.base": self._media_base(),
             "Reference/Reference.base": self._reference_base(),
             "Dashboard.base": self._dashboard_base(),
+            "Dashboard.md": self._dashboard_md(),
         }
 
         for rel_path, content in bases.items():
             full_path = self.base_path / rel_path
             if not full_path.exists():
                 full_path.write_text(content, encoding="utf-8")
-                logging.info(f"Created Obsidian base: {rel_path}")
+                logging.info(f"Created vault file: {rel_path}")
 
     @staticmethod
     def _projects_base() -> str:
@@ -427,8 +428,6 @@ filters:
     - 'file.inFolder("Projects")'
     - 'file.ext == "md"'
 properties:
-  title:
-    displayName: Title
   project_name:
     displayName: Project
   priority:
@@ -443,7 +442,6 @@ views:
     order:
       - note.priority
       - note.date
-      - note.title
       - note.project_name
       - note.tags
 """
@@ -456,8 +454,6 @@ filters:
     - 'file.inFolder("Actions")'
     - 'file.ext == "md"'
 properties:
-  title:
-    displayName: Title
   action_item:
     displayName: Action
   status:
@@ -499,8 +495,6 @@ filters:
     - 'file.inFolder("Media")'
     - 'file.ext == "md"'
 properties:
-  media_title:
-    displayName: Title
   media_type:
     displayName: Type
   creator:
@@ -516,7 +510,6 @@ views:
       property: note.media_type
       direction: ASC
     order:
-      - note.media_title
       - note.media_type
       - note.creator
       - note.status
@@ -527,7 +520,6 @@ views:
       and:
         - 'status == "to_consume"'
     order:
-      - note.media_title
       - note.media_type
       - note.creator
 """
@@ -540,8 +532,6 @@ filters:
     - 'file.inFolder("Reference")'
     - 'file.ext == "md"'
 properties:
-  title:
-    displayName: Title
   topic:
     displayName: Topic
   tags:
@@ -552,7 +542,6 @@ views:
   - type: table
     name: All Reference
     order:
-      - note.title
       - note.topic
       - note.tags
       - note.date
@@ -565,8 +554,6 @@ filters:
   and:
     - 'file.ext == "md"'
 properties:
-  title:
-    displayName: Title
   category:
     displayName: Category
   status:
@@ -588,7 +575,6 @@ views:
     order:
       - note.priority
       - note.due_date
-      - note.title
       - note.status
   - type: table
     name: Recent Captures
@@ -597,7 +583,6 @@ views:
         - 'file.mtime > now() - "7 days"'
     order:
       - file.mtime
-      - note.title
       - note.category
   - type: table
     name: All Open Actions
@@ -609,5 +594,32 @@ views:
     order:
       - note.due_date
       - note.priority
-      - note.title
+"""
+
+    @staticmethod
+    def _dashboard_md() -> str:
+        """Generate a Dashboard.md that embeds the base and category views."""
+        return """\
+---
+title: Dashboard
+tags:
+  - dashboard
+  - index
+---
+
+# Dashboard
+
+![[Dashboard.base]]
+
+> [!abstract]- Projects
+> ![[Projects/Projects.base]]
+
+> [!abstract]- Actions
+> ![[Actions/Actions.base]]
+
+> [!abstract]- Media
+> ![[Media/Media.base]]
+
+> [!abstract]- Reference
+> ![[Reference/Reference.base]]
 """

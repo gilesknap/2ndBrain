@@ -328,6 +328,9 @@ the service.
    so services run on boot without a login session.
 
 ## Common Workflows
+- **After any code change:** Always run
+  `uv run ruff check --fix; uv run pyright tests src` to lint and
+  type-check before committing.
 - **Update code:** After modifying any `src/brain/*.py` file, run
   `systemctl --user restart brain.service` or use `./restart.sh`.
 - **Monitor logs:** `journalctl --user -u brain.service -f`

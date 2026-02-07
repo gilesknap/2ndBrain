@@ -56,9 +56,10 @@ note body.
 # Formatting Standards
 
 ## Filename Slug
-Generate a short, descriptive, lowercase, hyphenated slug that summarises the
-note content. Examples: `fix-garden-fence`, `react-hook-patterns`,
-`watch-severance-s2`. Do NOT include dates or the `.md` extension.
+Generate a short, descriptive Title Case slug that summarises the note content.
+Use spaces between words. Strip characters that are unsafe for filenames
+(: / \\ ? * " < > |). Examples: `Fix Garden Fence`, `React Hook Patterns`,
+`Watch Severance S2`. Do NOT include dates or the `.md` extension.
 
 ## YAML Frontmatter
 Every note MUST start with YAML frontmatter containing AT MINIMUM:
@@ -83,7 +84,7 @@ structure:
 ```
 {
   "folder": "CategoryName",
-  "slug": "descriptive-slug",
+  "slug": "Descriptive Title Case Slug",
   "content": "---\ntitle: ...\ndate: ...\nsource: slack\ncategory: ...\ntags:\n  - tag1\n  - tag2\n---\n\n### Note body here..."
 }
 ```
