@@ -48,7 +48,7 @@ echo
 # -----------------------------------------------------------------------
 # 1. Check prerequisites
 # -----------------------------------------------------------------------
-REQUIRED_CMDS=(rclone)
+REQUIRED_CMDS=(rclone pass)
 if [[ "${MODE}" == "server" ]]; then
     REQUIRED_CMDS+=(uv python3)
 fi
