@@ -318,6 +318,18 @@ def fix_frontmatter(vault_path: Path, dry_run: bool = False) -> int:
                 fm["priority"] = new_val
                 changed = True
 
+            # Convert tags with spaces to kebab-case
+            tags = fm.get("tags")
+            if isinstance(tags, list):
+                new_tags = [
+                    t.strip().replace(" ", "-") if isinstance(t, str) else t
+                    for t in tags
+                ]
+                if new_tags != tags:
+                    logging.info("  Kebab-case tags: %s (%s)", new_tags, md_file.name)
+                    fm["tags"] = new_tags
+                    changed = True
+
             if changed:
                 modified += 1
                 if dry_run:

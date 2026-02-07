@@ -71,7 +71,7 @@ Every note MUST start with YAML frontmatter containing AT MINIMUM:
 - `date`: Current date/time in ISO format (from the Context section)
 - `source: slack`
 - `category`: The folder name (Projects/Actions/Media/Reference/Inbox)
-- `tags`: A YAML list of relevant tags
+- `tags`: A YAML list of relevant tags (kebab-case, no spaces — e.g. `phishing-prevention` not `phishing prevention`)
 
 Plus any category-specific fields listed above.
 
