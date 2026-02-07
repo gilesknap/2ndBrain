@@ -58,12 +58,12 @@ def main(args: Sequence[str] | None = None) -> None:
     mig.add_argument(
         "--reclassify",
         action="store_true",
-        help="Use Gemini AI to re-evaluate note categories and tags",
+        help="Use Gemini AI to re-evaluate categories and tags",
     )
     mig.add_argument(
         "--all",
         action="store_true",
-        help="Run all migration operations",
+        help="Run all non-AI migrations (rename, fix-fm, links)",
     )
 
     parsed = parser.parse_args(args)
@@ -104,7 +104,7 @@ def _run_migrate(parsed) -> None:
         rename=do_all or parsed.rename,
         fix_fm=do_all or parsed.fix_frontmatter,
         update_links=do_all or parsed.update_links,
-        reclassify=do_all or parsed.reclassify,
+        reclassify=parsed.reclassify,
         dry_run=parsed.dry_run,
     )
 

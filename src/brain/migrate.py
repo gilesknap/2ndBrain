@@ -220,13 +220,24 @@ def update_wiki_links(
 # fix_frontmatter
 # ------------------------------------------------------------------
 
+# Canonical priority values (numeric prefix ensures correct sort order)
+_PRIORITY_VALUES = ("1 - Urgent", "2 - High", "3 - Medium", "4 - Low")
+
+# Migration map for old bare-word priority values
+_PRIORITY_MIGRATE: dict[str, str] = {
+    "urgent": "1 - Urgent",
+    "high": "2 - High",
+    "medium": "3 - Medium",
+    "low": "4 - Low",
+}
+
 # Required fields per category, with default values
 _CATEGORY_DEFAULTS: dict[str, dict[str, str]] = {
-    "Projects": {"project_name": "", "priority": "medium"},
+    "Projects": {"project_name": "", "priority": "3 - Medium"},
     "Actions": {
         "action_item": "",
         "status": "todo",
-        "priority": "medium",
+        "priority": "3 - Medium",
         "due_date": "",
         "project": "",
     },
@@ -294,6 +305,19 @@ def fix_frontmatter(vault_path: Path, dry_run: bool = False) -> int:
                     changed = True
                     logging.info("  Add field %s=%r to %s", key, default, md_file.name)
 
+            # Migrate bare-word priority values to prefixed enum
+            raw_priority = str(fm.get("priority", "")).strip().lower()
+            if raw_priority in _PRIORITY_MIGRATE:
+                new_val = _PRIORITY_MIGRATE[raw_priority]
+                logging.info(
+                    "  Migrate priority: %s -> %s (%s)",
+                    fm["priority"],
+                    new_val,
+                    md_file.name,
+                )
+                fm["priority"] = new_val
+                changed = True
+
             if changed:
                 modified += 1
                 if dry_run:
@@ -322,7 +346,7 @@ Possible changes:
 - Any category-specific field (see the schema below)
 
 Category field schemas:
-- Projects: project_name, priority (high/medium/low)
+- Projects: project_name, priority (1 - Urgent / 2 - High / 3 - Medium / 4 - Low)
 - Actions: action_item, due_date, project (wiki-link), status, priority
 - Media: media_title, media_type (book/film/tv/podcast/article/video), creator,
   url, status

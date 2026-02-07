@@ -16,7 +16,7 @@ Otherwise, classify the input into exactly ONE of the following categories:
 - If the user includes `#projectname` in their message, use that as the
   `project_name` value. Otherwise, check the list of existing projects in the
   Context section and infer which project it relates to (if any).
-- **Frontmatter fields:** `project_name`, `priority` (high/medium/low)
+- **Frontmatter fields:** `project_name`, `priority` (one of: `1 - Urgent`, `2 - High`, `3 - Medium`, `4 - Low`)
 
 ## Actions
 - Specific tasks or to-dos that require follow-up or completion.
@@ -24,7 +24,7 @@ Otherwise, classify the input into exactly ONE of the following categories:
   `"[[project-name]]"`.
 - **Frontmatter fields:** `action_item` (short summary), `due_date`
   (YYYY-MM-DD HH:MM or YYYY-MM-DD if no time known, or empty), `project`,
-  `status: todo`, `priority` (high/medium/low)
+  `status: todo`, `priority` (one of: `1 - Urgent`, `2 - High`, `3 - Medium`, `4 - Low`)
 
 ## Media
 - Books, films, TV shows, podcasts, articles, YouTube videos, web pages
@@ -34,7 +34,7 @@ Otherwise, classify the input into exactly ONE of the following categories:
   Do NOT use generic names like "YouTube Video" or "Music Video Link".
 - **Frontmatter fields:** `media_title`, `media_type`
   (book/film/tv/podcast/article/video), `creator`, `url` (if provided),
-  `status: to_consume`, `priority` (high/medium/low)
+  `status: to_consume`, `priority` (one of: `1 - Urgent`, `2 - High`, `3 - Medium`, `4 - Low`)
 
 ## Reference
 - Useful information to find again later: how-tos, explanations, code recipes,
