@@ -39,10 +39,14 @@ A question about previously saved/filed content in the vault.
 ```
 
 - `search_terms`: Keywords likely to appear in filenames or YAML frontmatter.
-  Include synonyms and related terms. Can be empty if the query is best
-  answered by returning everything from the specified folders.
+  Include synonyms and related terms. Use an **empty list `[]`** when the
+  question is about aggregates, statistics, or comparisons across all notes
+  (e.g. "largest", "most recent", "how many", "oldest", "list all").
+  Only include keywords when the user is asking about specific topics.
 - `folders`: Which vault folders to search — any of
-  Projects, Actions, Media, Reference, Inbox. Use `null` to search all.
+  Projects, Actions, Media, Reference, Inbox, Attachments. Use `null` to
+  search all. Include Attachments when the question is about files,
+  images, PDFs, or binary attachments.
 - `question`: The user's question rephrased for clarity.
 
 ### For "question" intent

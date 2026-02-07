@@ -229,21 +229,22 @@ class Vault:
         max_results: int = 30,
     ) -> list[dict]:
         """
-        Search vault notes by keyword and/or folder.
+        Search vault notes and attachments by keyword and/or folder.
 
-        Returns a list of dicts with keys: filename, folder, frontmatter.
+        Returns a list of dicts with keys: filename, folder, frontmatter,
+        size_bytes, modified, word_count (0 for binary files).
         Keywords are matched case-insensitively against the filename and
         all frontmatter values.
 
         Args:
             keywords: Terms to match in filenames / frontmatter values.
-                      If empty or None, all notes in the target folders
+                      If empty or None, all files in the target folders
                       are returned.
             folders: Category folders to search. None means all folders
-                     (excluding Attachments).
+                     (including Attachments).
             max_results: Cap the number of returned matches.
         """
-        search_folders = folders or [f for f in CATEGORIES if f != "Attachments"]
+        search_folders = folders or list(CATEGORIES)
         # Validate folder names
         search_folders = [f for f in search_folders if f in VALID_FOLDERS]
 
@@ -255,23 +256,45 @@ class Vault:
             if not folder_path.exists():
                 continue
 
-            for md_file in folder_path.glob("*.md"):
-                fm = self._parse_frontmatter(md_file) or {}
+            # Attachments contain binary files; other folders have .md
+            glob_pattern = "*" if folder == "Attachments" else "*.md"
+
+            for file_path in folder_path.glob(glob_pattern):
+                if not file_path.is_file():
+                    continue
+
+                # Parse frontmatter for markdown files only
+                is_md = file_path.suffix == ".md"
+                fm = self._parse_frontmatter(file_path) or {} if is_md else {}
 
                 if lower_keywords:
-                    # Build searchable text from filename + frontmatter
-                    searchable = md_file.stem.lower()
+                    searchable = file_path.stem.lower()
                     for v in fm.values():
                         searchable += " " + str(v).lower()
 
                     if not any(kw in searchable for kw in lower_keywords):
                         continue
 
+                # Enrich with file-system metadata
+                stat = file_path.stat()
+                word_count = 0
+                if is_md:
+                    try:
+                        text = file_path.read_text(encoding="utf-8")
+                        word_count = len(text.split())
+                    except Exception:
+                        pass
+
                 results.append(
                     {
-                        "filename": md_file.name,
+                        "filename": file_path.name,
                         "folder": folder,
                         "frontmatter": fm,
+                        "size_bytes": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime).strftime(
+                            "%Y-%m-%d %H:%M"
+                        ),
+                        "word_count": word_count,
                     }
                 )
 

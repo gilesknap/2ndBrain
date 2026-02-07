@@ -43,6 +43,18 @@ class VaultQueryAgent(BaseAgent):
             folders=folders,
         )
 
+        # If keyword search returned nothing, retry without keywords
+        # so aggregate queries ("largest", "most recent") still work.
+        if not matches and search_terms:
+            logging.info(
+                "VaultQuery: no matches for %s, retrying without keywords",
+                search_terms,
+            )
+            matches = context.vault.search_notes(
+                keywords=None,
+                folders=folders,
+            )
+
         if not matches:
             return AgentResult(
                 response_text=(
@@ -90,7 +102,18 @@ class VaultQueryAgent(BaseAgent):
         for m in matches:
             parts = [f"- **{m['filename']}** (in {m['folder']}/)"]
 
-            # Add metadata fields
+            # File-system metadata
+            fs_items = []
+            if "size_bytes" in m:
+                fs_items.append(f"{m['size_bytes']} bytes")
+            if "word_count" in m:
+                fs_items.append(f"{m['word_count']} words")
+            if "modified" in m:
+                fs_items.append(f"modified {m['modified']}")
+            if fs_items:
+                parts.append("  " + " | ".join(fs_items))
+
+            # YAML frontmatter fields
             meta_items = []
             for key, value in m.get("frontmatter", {}).items():
                 meta_items.append(f"{key}: {value}")
@@ -112,9 +135,11 @@ class VaultQueryAgent(BaseAgent):
             "Obsidian vault.  The vault is a personal knowledge base organised "
             "into folders: Projects, Actions, Media, Reference, Inbox.\n\n"
             f"Current time: {current_time}\n\n"
-            "Below is a list of matching vault notes with their filenames and "
-            "YAML frontmatter metadata.  Use ONLY this information to answer "
-            "the user's question.  If the metadata is insufficient, say so.\n\n"
+            "Below is a list of matching vault notes with their filenames, "
+            "file-system metadata (size in bytes, word count, last modified "
+            "date), and YAML frontmatter properties.  Use this information to "
+            "answer the user's question.  If the metadata is insufficient, "
+            "say so.\n\n"
             "Respond in concise, conversational plain text suitable for Slack.  "
             "Use bullet points or numbered lists where appropriate.  Do NOT "
             "return JSON."
