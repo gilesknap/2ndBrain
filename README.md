@@ -46,6 +46,8 @@ Slack message → listener.py (attachment prep + thread history)
 
 See [Architecture](explanations/architecture.md) for the full design.
 
+See [Security](explanations/security.md) for the threat analysis and hardening guide.
+
 See [Prompts](reference/prompts.md) for the Gemini system instructions.
 
 ## Tech Stack
