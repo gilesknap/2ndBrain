@@ -11,7 +11,7 @@
 # Server mode:   rclone mount + brain.service
 # Workstation:   rclone bisync on a 30s timer
 #
-# Usage:  ./scripts/install.sh [--server | --workstation]
+# Usage:  ./scripts/install.sh [--server | --workstation] [--gpg]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,11 +24,15 @@ MOUNT_DIR="${HOME}/Documents/2ndBrain"
 # Parse arguments
 # -----------------------------------------------------------------------
 MODE=""
-if [[ "${1:-}" == "--server" ]]; then
-    MODE="server"
-elif [[ "${1:-}" == "--workstation" ]]; then
-    MODE="workstation"
-fi
+FORCE_GPG=false
+for arg in "$@"; do
+    case "${arg}" in
+        --server)      MODE="server" ;;
+        --workstation) MODE="workstation" ;;
+        --gpg)         FORCE_GPG=true ;;
+        *) echo "Unknown argument: ${arg}"; exit 1 ;;
+    esac
+done
 
 if [[ -z "${MODE}" ]]; then
     echo "=== 2ndBrain Installer ==="
@@ -72,7 +76,14 @@ done
 CRED_METHOD=""
 SYSTEMD_VER=$(systemctl --version 2>/dev/null | head -1 | awk '{print $2}')
 
-if command -v systemd-creds &>/dev/null && [[ "${SYSTEMD_VER}" -ge 256 ]] 2>/dev/null; then
+if [[ "${FORCE_GPG}" == "true" ]]; then
+    if command -v pass &>/dev/null; then
+        CRED_METHOD="gpg"
+    else
+        echo "ERROR: --gpg specified but 'pass' is not installed."
+        exit 1
+    fi
+elif command -v systemd-creds &>/dev/null && [[ "${SYSTEMD_VER}" -ge 256 ]] 2>/dev/null; then
     CRED_METHOD="systemd-creds"
 elif command -v pass &>/dev/null; then
     CRED_METHOD="gpg"
