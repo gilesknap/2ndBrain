@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Agent Architecture &#8212; 2ndBrain 0.1.1.dev14+g74771361d documentation</title>
+    <title>Agent Architecture &#8212; 2ndBrain 0.1.1.dev18+g0f50d88c5 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=74a4e422"></script>
+    <script src="../_static/documentation_options.js?v=bb9abd1c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -838,6 +838,9 @@ window.addEventListener("load", load);</script>
 <li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decisions/0003-secret-storage-and-account-separation.html">3. Secret Storage and Account Separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0004-two-call-router-agent-pattern.html">4. Two-call router-agent pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0005-metadata-only-vault-queries.html">5. Metadata-only vault queries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decisions/0006-shared-processor-module.html">6. Shared processor module</a></li>
 </ul>
 </details></li>
 </ul>
@@ -918,10 +921,12 @@ registering the instance — the router prompt updates itself automatically.</p>
     B --&gt; C[Router&lt;br/&gt;Lightweight Gemini call&lt;br/&gt;classifies intent]
     C --&gt;|intent: file| D[FilingAgent&lt;br/&gt;Classify &amp; archive content&lt;br/&gt;gemini-2.5-flash]
     C --&gt;|intent: vault_query| E[VaultQueryAgent&lt;br/&gt;Search vault + query Gemini&lt;br/&gt;gemini-2.5-flash]
+    C --&gt;|intent: vault_edit| V[VaultEditAgent&lt;br/&gt;Modify existing notes&lt;br/&gt;gemini-2.5-flash]
     C --&gt;|intent: memory| M[MemoryAgent&lt;br/&gt;Add/remove/list directives&lt;br/&gt;No Gemini call]
     C --&gt;|intent: question| F[Direct answer&lt;br/&gt;from router response]
     C --&gt;|intent: future| G[Future agents&lt;br/&gt;Subclass BaseAgent]
     D --&gt; H[Save to vault + reply]
+    V --&gt; H
     E --&gt; I[Text answer in Slack]
     M --&gt; I
     F --&gt; I
@@ -1103,8 +1108,61 @@ into a compact summary, and sends that to Gemini with the user’s question.</p>
 </tbody>
 </table>
 </div>
-<p>Only filenames and frontmatter metadata are sent to Gemini (not full note
-bodies) to keep the prompt compact and token-efficient.</p>
+<p>The agent supports three query modes selected by the router:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Strategy</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">default</span></code></p></td>
+<td><p>Keyword search + frontmatter; top matches sent to Gemini</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code></p></td>
+<td><p>Full-vault index of filenames, sizes, dates, and frontmatter — no bodies</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grep</span></code></p></td>
+<td><p>Local text search across file contents; matching snippets sent to Gemini</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For <code class="docutils literal notranslate"><span class="pre">default</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata</span></code> modes only filenames and frontmatter metadata
+are sent to Gemini (not full note bodies) to keep the prompt compact and
+token-efficient. <code class="docutils literal notranslate"><span class="pre">grep</span></code> mode additionally sends short context snippets
+around each match.</p>
+</section>
+<section id="vaulteditagent-agents-vault-edit-py">
+<h3>VaultEditAgent (<code class="docutils literal notranslate"><span class="pre">agents/vault_edit.py</span></code>)<a class="headerlink" href="#vaulteditagent-agents-vault-edit-py" title="Link to this heading">#</a></h3>
+<p>Modifies existing vault notes — changing frontmatter fields like priority,
+status, tags, or due dates across one or many files. The router provides
+<code class="docutils literal notranslate"><span class="pre">search_terms</span></code>, <code class="docutils literal notranslate"><span class="pre">folders</span></code>, and optionally <code class="docutils literal notranslate"><span class="pre">target_files</span></code>; the agent finds
+candidates, sends them to Gemini to plan the edits, then applies the
+changes via <code class="docutils literal notranslate"><span class="pre">Vault.update_frontmatter()</span></code>.</p>
+<p>A safety limit of 10 files per request prevents accidental bulk damage.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Property</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Intent name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">vault_edit</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Model</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gemini-2.5-flash</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Prompt</p></td>
+<td><p>Built inline — system instructions + candidate metadata</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gemini calls</p></td>
+<td><p>1 (router) + 1 (edit planner) = <strong>2 total</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="direct-answer-built-into-router">
 <h3>Direct Answer (built into Router)<a class="headerlink" href="#direct-answer-built-into-router" title="Link to this heading">#</a></h3>
@@ -1179,7 +1237,8 @@ via rclone like all other vault content).</p>
 ├── app.py               # Wires agents + router, starts Slack listener
 ├── listener.py          # Slack events → attachment prep → router.route()
 ├── processor.py         # Shared utilities: _extract_json, _inject_tokens
-├── vault.py             # Vault I/O including search_notes()
+├── vault.py             # Vault I/O including search_notes(), grep_notes()
+├── migrate.py           # Vault migration: rename, fix frontmatter, reclassify
 ├── prompt.md            # Filing agent system prompt
 └── agents/
     ├── __init__.py      # Package exports
@@ -1187,7 +1246,8 @@ via rclone like all other vault content).</p>
     ├── router.py        # Intent classifier + dispatcher
     ├── router_prompt.md # Router system prompt (template with {{placeholders}})
     ├── filing.py        # FilingAgent
-    ├── vault_query.py   # VaultQueryAgent
+    ├── vault_query.py   # VaultQueryAgent (default/metadata/grep modes)
+    ├── vault_edit.py    # VaultEditAgent (bulk frontmatter updates)
     └── memory.py        # MemoryAgent (persistent directives)
 </pre></div>
 </div>
@@ -1234,28 +1294,13 @@ classifying messages to it.</p>
 </section>
 <section id="design-decisions">
 <h2>Design Decisions<a class="headerlink" href="#design-decisions" title="Link to this heading">#</a></h2>
-<section id="why-a-two-call-pattern">
-<h3>Why a two-call pattern?<a class="headerlink" href="#why-a-two-call-pattern" title="Link to this heading">#</a></h3>
-<p>A single monolithic prompt that both classifies <em>and</em> executes every
-possible action would be fragile, hard to test, and wasteful — the filing
-prompt includes detailed formatting instructions that are irrelevant for
-vault queries. The router call is cheap (~200 tokens) and lets each agent
-use a focused, specialised prompt.</p>
-</section>
-<section id="why-send-only-metadata-for-vault-queries">
-<h3>Why send only metadata for vault queries?<a class="headerlink" href="#why-send-only-metadata-for-vault-queries" title="Link to this heading">#</a></h3>
-<p>Sending full note bodies would quickly exhaust the context window and
-increase cost. Filenames and YAML frontmatter contain enough information
-(title, dates, tags, status, project, media type, etc.) to answer most
-questions like “do I have actions due today?” or “what videos did I file
-this week?”.</p>
-</section>
-<section id="why-keep-processor-py">
-<h3>Why keep processor.py?<a class="headerlink" href="#why-keep-processor-py" title="Link to this heading">#</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">processor.py</span></code> contains shared utility functions (<code class="docutils literal notranslate"><span class="pre">_extract_json</span></code>,
-<code class="docutils literal notranslate"><span class="pre">_inject_tokens</span></code>) used by multiple agents. Keeping them in a central
-module avoids duplication without coupling agents to each other.</p>
-</section>
+<p>Key architectural decisions are recorded as
+<a class="reference internal" href="decisions.html"><span class="std std-doc">Architecture Decision Records</span></a>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="decisions/0004-two-call-router-agent-pattern.html"><span class="std std-doc">ADR-4: Two-call router-agent pattern</span></a></p></li>
+<li><p><a class="reference internal" href="decisions/0005-metadata-only-vault-queries.html"><span class="std std-doc">ADR-5: Metadata-only vault queries</span></a></p></li>
+<li><p><a class="reference internal" href="decisions/0006-shared-processor-module.html"><span class="std std-doc">ADR-6: Shared processor module</span></a></p></li>
+</ul>
 </section>
 </section>
 
@@ -1317,6 +1362,7 @@ module avoids duplication without coupling agents to each other.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#registered-agents">Registered Agents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filingagent-agents-filing-py">FilingAgent (<code class="docutils literal notranslate"><span class="pre">agents/filing.py</span></code>)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vaultqueryagent-agents-vault-query-py">VaultQueryAgent (<code class="docutils literal notranslate"><span class="pre">agents/vault_query.py</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vaulteditagent-agents-vault-edit-py">VaultEditAgent (<code class="docutils literal notranslate"><span class="pre">agents/vault_edit.py</span></code>)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#direct-answer-built-into-router">Direct Answer (built into Router)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#memoryagent-agents-memory-py">MemoryAgent (<code class="docutils literal notranslate"><span class="pre">agents/memory.py</span></code>)</a></li>
 </ul>
@@ -1324,12 +1370,7 @@ module avoids duplication without coupling agents to each other.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#directives-system">Directives System</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-components">Key Components</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-a-new-agent">Adding a New Agent</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions">Design Decisions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-a-two-call-pattern">Why a two-call pattern?</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-send-only-metadata-for-vault-queries">Why send only metadata for vault queries?</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-keep-processor-py">Why keep processor.py?</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design-decisions">Design Decisions</a></li>
 </ul>
   </nav></div>
 

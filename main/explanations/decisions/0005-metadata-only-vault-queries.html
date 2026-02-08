@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Architectural Decision Records &#8212; 2ndBrain 0.1.1.dev18+g0f50d88c5 documentation</title>
+    <title>5. Metadata-only vault queries &#8212; 2ndBrain 0.1.1.dev18+g0f50d88c5 documentation</title>
   
   
   
@@ -27,28 +27,28 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f9f58732" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=f9f58732" />
   
   <!-- So that users can add custom icons -->
-  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=bb9abd1c"></script>
-    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../_static/copybutton.js?v=30646c52"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/decisions';</script>
+    <script src="../../_static/documentation_options.js?v=bb9abd1c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=30646c52"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/decisions/0005-metadata-only-vault-queries';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/2ndBrain/switcher.json';
@@ -56,11 +56,11 @@
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
-    <link rel="icon" href="../_static/dls-logo.svg"/>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="1. Record architecture decisions" href="decisions/0001-record-architecture-decisions.html" />
-    <link rel="prev" title="Agent Architecture" href="architecture.html" />
+    <link rel="icon" href="../../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="6. Shared processor module" href="0006-shared-processor-module.html" />
+    <link rel="prev" title="4. Two-call router-agent pattern" href="0004-two-call-router-agent-pattern.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
@@ -82,7 +82,7 @@
   <dialog id="pst-search-dialog">
     
 <form class="bd-search d-flex align-items-center"
-      action="../search.html"
+      action="../../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -118,7 +118,7 @@
     
   
 
-<a class="navbar-brand logo" href="../index.html">
+<a class="navbar-brand logo" href="../../index.html">
   
   
   
@@ -129,8 +129,8 @@
       
     
     
-    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
-    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+    <img src="../../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
   
   
     <p class="title logo__title">2ndBrain</p>
@@ -148,28 +148,28 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../tutorials.html">
+  <a class="nav-link nav-internal" href="../../tutorials.html">
     Tutorials
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../how-to.html">
+  <a class="nav-link nav-internal" href="../../how-to.html">
     How-to Guides
   </a>
 </li>
 
 
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../explanations.html">
+  <a class="nav-link nav-internal" href="../../explanations.html">
     Explanations
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference.html">
+  <a class="nav-link nav-internal" href="../../reference.html">
     Reference
   </a>
 </li>
@@ -296,28 +296,28 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../tutorials.html">
+  <a class="nav-link nav-internal" href="../../tutorials.html">
     Tutorials
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../how-to.html">
+  <a class="nav-link nav-internal" href="../../how-to.html">
     How-to Guides
   </a>
 </li>
 
 
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../explanations.html">
+  <a class="nav-link nav-internal" href="../../explanations.html">
     Explanations
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../reference.html">
+  <a class="nav-link nav-internal" href="../../reference.html">
     Reference
   </a>
 </li>
@@ -398,14 +398,14 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Agent Architecture</a></li>
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Architectural Decision Records</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0003-secret-storage-and-account-separation.html">3. Secret Storage and Account Separation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0004-two-call-router-agent-pattern.html">4. Two-call router-agent pattern</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0005-metadata-only-vault-queries.html">5. Metadata-only vault queries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decisions/0006-shared-processor-module.html">6. Shared processor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Agent Architecture</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../decisions.html">Architectural Decision Records</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="0003-secret-storage-and-account-separation.html">3. Secret Storage and Account Separation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="0004-two-call-router-agent-pattern.html">4. Two-call router-agent pattern</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">5. Metadata-only vault queries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="0006-shared-processor-module.html">6. Shared processor module</a></li>
 </ul>
 </details></li>
 </ul>
@@ -444,14 +444,17 @@
   <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
-      <a href="../index.html" class="nav-link" aria-label="Home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../explanations.html" class="nav-link">Explanations</a></li>
+    <li class="breadcrumb-item"><a href="../../explanations.html" class="nav-link">Explanations</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Architectural Decision Records</span></li>
+    
+    <li class="breadcrumb-item"><a href="../decisions.html" class="nav-link">Architectural Decision Records</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">5. Metadata-only vault queries</span></li>
   </ul>
 </nav>
 </div>
@@ -468,20 +471,43 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="architectural-decision-records">
-<h1>Architectural Decision Records<a class="headerlink" href="#architectural-decision-records" title="Link to this heading">#</a></h1>
-<p>Architectural decisions are made throughout a project’s lifetime. As a way of keeping track of these decisions, we record these decisions in Architecture Decision Records (ADRs) listed below.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0001-record-architecture-decisions.html">1. Record architecture decisions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0002-switched-to-python-copier-template.html">2. Adopt python-copier-template for project structure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0003-secret-storage-and-account-separation.html">3. Secret Storage and Account Separation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0004-two-call-router-agent-pattern.html">4. Two-call router-agent pattern</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0005-metadata-only-vault-queries.html">5. Metadata-only vault queries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="decisions/0006-shared-processor-module.html">6. Shared processor module</a></li>
+  <section id="metadata-only-vault-queries">
+<h1>5. Metadata-only vault queries<a class="headerlink" href="#metadata-only-vault-queries" title="Link to this heading">#</a></h1>
+<p>Date: 2025-01-01</p>
+<section id="status">
+<h2>Status<a class="headerlink" href="#status" title="Link to this heading">#</a></h2>
+<p>Accepted</p>
+</section>
+<section id="context">
+<h2>Context<a class="headerlink" href="#context" title="Link to this heading">#</a></h2>
+<p>The vault query agent needs to answer questions about previously filed notes
+(“what actions are due today?”, “list my recent media saves”). Sending the
+full body of every matching note to Gemini would quickly exhaust the context
+window, increase latency, and raise API costs — especially for broad queries
+that match dozens of files.</p>
+</section>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading">#</a></h2>
+<p>For the default and metadata query modes, send only filenames and YAML
+frontmatter to Gemini (not full note bodies). Frontmatter contains title,
+dates, tags, status, project, media type, and other structured fields — enough
+to answer most questions. A separate <code class="docutils literal notranslate"><span class="pre">grep</span></code> mode sends short context snippets
+when the user needs to search within file contents.</p>
+</section>
+<section id="consequences">
+<h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Vault queries stay fast and cheap, even across hundreds of notes.</p></li>
+<li><p>Questions about structured metadata (“what’s due this week?”, “list all
+media by type”) work well because the answer is fully contained in
+frontmatter.</p></li>
+<li><p>Questions requiring full-text reasoning (“summarise my notes on
+Kubernetes”) need the <code class="docutils literal notranslate"><span class="pre">grep</span></code> mode, which is more expensive but
+still bounded by snippet length.</p></li>
+<li><p>This design depends on good frontmatter quality — the filing agent must
+produce comprehensive YAML fields for queries to be useful.</p></li>
 </ul>
-</div>
-<p>For more information on ADRs see this <a class="reference external" href="http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions">blog by Michael Nygard</a>.</p>
+</section>
 </section>
 
 
@@ -495,20 +521,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="architecture.html"
+       href="0004-two-call-router-agent-pattern.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Agent Architecture</p>
+        <p class="prev-next-title">4. Two-call router-agent pattern</p>
       </div>
     </a>
     <a class="right-next"
-       href="decisions/0001-record-architecture-decisions.html"
+       href="0006-shared-processor-module.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">1. Record architecture decisions</p>
+        <p class="prev-next-title">6. Shared processor module</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -524,10 +550,25 @@
 
 
   <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#status">Status</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context">Context</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision">Decision</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consequences">Consequences</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/gilesknap/2ndBrain/edit/main/docs/explanations/decisions.md">
+    <a href="https://github.com/gilesknap/2ndBrain/edit/main/docs/explanations/decisions/0005-metadata-only-vault-queries.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -543,7 +584,7 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/explanations/decisions.md.txt"
+      <li><a href="../../_sources/explanations/decisions/0005-metadata-only-vault-queries.md.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
@@ -561,8 +602,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
