@@ -1,10 +1,9 @@
-# Rclone Setup: Encrypted & Restricted
+# Rclone Setup
 
 ```{note}
-Most of this guide is automated by running `./setup-gpg-pass.sh` followed by
-`./install.sh`. The scripts will prompt you to install any missing system
-packages (rclone, fuse3, pass). Read on if you need to understand the
-individual steps or troubleshoot.
+Most of this guide is automated by `./install.sh`. The script checks for
+rclone, sets file permissions, and installs the systemd services. Read on
+if you need to understand the individual steps or troubleshoot.
 ```
 
 This guide provides a secure, portable method for mounting a specific Google Drive folder to a local Linux directory (`~/Documents/2ndBrain`).
@@ -15,134 +14,57 @@ Install the required system tools:
 
 ```bash
 # Ubuntu/Debian/Mint
-sudo apt install rclone fuse3 pass
+sudo apt install rclone fuse3
 
 # RHEL/Fedora/CentOS
-sudo yum install rclone fuse3 pass
+sudo yum install rclone fuse3
 ```
 
 ---
 
 ## 2. Configuration Strategy
 
-To ensure the mount is both secure and portable, we use three key principles:
+To ensure the mount is both secure and portable, we use two key principles:
 
-1. **Config Encryption:** The `rclone.conf` is password-protected.
-2. **Root Isolation:** Use the `root_folder_id` in the config to lock access to a single folder.
-3. **GPG Encryption:** Store the password encrypted with GPG using `pass` and `gpg-agent`.
+1. **Root Isolation:** Use the `root_folder_id` in the config to lock access to a single folder.
+2. **File Permissions:** The `rclone.conf` file is protected with mode 600 (owner read/write only).
 
 ---
 
-## 3. Security: GPG-Encrypted Password Storage
+## 3. Security: File Permissions
 
-We'll use `pass` (the standard Unix password manager) with GPG encryption, configured with `gpg-agent` to cache the passphrase for automated access.
+The rclone configuration file at `~/.config/rclone/rclone.conf` contains
+your Google Drive OAuth tokens. It is protected by file permissions — the
+installer enforces mode 600 so only your user can read it.
 
-### Step 1: Create or Use Existing GPG Key
-
-```bash
-# Check if you already have a GPG key
-gpg --list-keys
-
-# If you don't have one, create it (follow prompts, set a strong passphrase)
-gpg --full-generate-key
-```
-
-### Step 2: Configure gpg-agent for Long Caching
+This is sufficient for a personal automation tool: if someone has access
+to your user account, they already have access to everything else. No
+additional encryption layer (GPG, pass, etc.) is needed.
 
 ```bash
-# Configure gpg-agent to cache passphrases indefinitely
-mkdir -p ~/.gnupg
-cat >> ~/.gnupg/gpg-agent.conf << 'EOF'
-default-cache-ttl 34560000
-max-cache-ttl 34560000
-allow-preset-passphrase
-EOF
-
-# Restart gpg-agent to apply settings
-gpgconf --kill gpg-agent
-gpg-agent --daemon
+# The installer does this automatically, but you can verify:
+chmod 600 ~/.config/rclone/rclone.conf
+ls -l ~/.config/rclone/rclone.conf
+# Should show: -rw------- 1 youruser youruser ...
 ```
-
-### Step 3: Initialize pass and Store Password
-
-```bash
-# Initialize pass with your GPG key (use the email from gpg --list-keys)
-pass init "your-email@example.com"
-
-# Store the rclone config password
-pass insert rclone/gdrive-vault
-```
-
-### Step 4: Setup Automatic Passphrase Preset at Login
-
-Get your GPG key's keygrip and create a preset script:
-
-```bash
-# Get the keygrip (avoid storing in history by using redirection)
-gpg --with-keygrip -K | grep -A1 "ssb" | tail -1 | awk '{print $3}' > /tmp/keygrip.txt
-
-# View it to verify
-cat /tmp/keygrip.txt
-
-# Create a preset script (will prompt for your GPG passphrase)
-mkdir -p ~/.local/bin
-cat > ~/.local/bin/preset-gpg-passphrase.sh << 'EOF'
-#!/bin/bash
-# Read keygrip from file
-KEYGRIP=$(cat ~/.gnupg/keygrip.txt)
-
-# Prompt for passphrase securely (won't echo to screen)
-read -sp "Enter GPG passphrase: " GPG_PASS
-echo
-
-# Preset the passphrase
-echo "$GPG_PASS" | /usr/lib/gnupg/gpg-preset-passphrase --preset "$KEYGRIP"
-EOF
-
-chmod +x ~/.local/bin/preset-gpg-passphrase.sh
-
-# Move keygrip to permanent location
-mv /tmp/keygrip.txt ~/.gnupg/keygrip.txt
-chmod 600 ~/.gnupg/keygrip.txt
-```
-
-### Step 5: Add to Login Script
-
-Add this to your `~/.bashrc` or `~/.profile`:
-
-```bash
-# Auto-preset GPG passphrase on login (run once per session)
-if [ -z "$GPG_PRESET_DONE" ]; then
-    if [ -f ~/.local/bin/preset-gpg-passphrase.sh ]; then
-        ~/.local/bin/preset-gpg-passphrase.sh
-        export GPG_PRESET_DONE=1
-    fi
-fi
-```
-
-Now when you login via SSH, you'll be prompted once for your GPG passphrase, and it will be cached for the systemd service to use.
 
 ---
 
 ## 4. Systemd Service
 
-Create the systemd service file at `~/.config/systemd/user/rclone-2ndbrain.service`. It uses specifiers (`%U`, `%h`) to work on any machine regardless of username or UID.
+The service files are installed automatically by `./install.sh`. They use
+specifiers (`%h`) to work on any machine regardless of username.
 
-```bash
-# Create the systemd user directory if it doesn't exist
-mkdir -p ~/.config/systemd/user
+The key service file is `rclone-2ndbrain.service`:
 
-# Create the service file
-cat > ~/.config/systemd/user/rclone-2ndbrain.service << 'EOF'
+```ini
 [Unit]
 Description=RClone Mount for 2ndBrain
 After=network-online.target
 
 [Service]
 Type=simple
-# Note: 'gdrive-vault:' points to the root_folder_id set in config
 ExecStart=/usr/bin/rclone mount gdrive-vault: %h/Documents/2ndBrain \
-  --password-command "pass rclone/gdrive-vault" \
   --vfs-cache-mode full \
   --vfs-cache-max-age 24h \
   --vfs-cache-max-size 10G
@@ -151,7 +73,6 @@ Restart=on-failure
 
 [Install]
 WantedBy=default.target
-EOF
 ```
 
 ---
@@ -203,56 +124,27 @@ To replicate this setup on a new machine:
 old_machine="user@old_machine_ip"  # Replace with actual username and IP
 
 # Install dependencies
-sudo apt install rclone fuse3 pass
+sudo apt install rclone fuse3
 
 # Create necessary directories
 mkdir -p ~/.config/rclone
-mkdir -p ~/.config/systemd/user
-mkdir -p ~/.local/bin
 mkdir -p ~/Documents/2ndBrain
 
-# Copy rclone config and systemd service
+# Copy rclone config (contains OAuth tokens — keep it safe)
 scp $old_machine:~/.config/rclone/rclone.conf ~/.config/rclone/
-scp $old_machine:~/.config/systemd/user/rclone-2ndbrain.service ~/.config/systemd/user/
 
-# Copy GPG keys and password store
-scp -r $old_machine:~/.gnupg ~/
-scp -r $old_machine:~/.password-store ~/
-
-# Copy the preset passphrase script
-scp $old_machine:~/.local/bin/preset-gpg-passphrase.sh ~/.local/bin/
-chmod +x ~/.local/bin/preset-gpg-passphrase.sh
-
-# Fix permissions
-chmod 700 ~/.gnupg
-chmod 700 ~/.password-store
-
-# Add the auto-preset to ~/.bashrc (if not already there)
-cat >> ~/.bashrc << 'EOF'
-
-# Auto-preset GPG passphrase on login (run once per session)
-if [ -z "$GPG_PRESET_DONE" ]; then
-    if [ -f ~/.local/bin/preset-gpg-passphrase.sh ]; then
-        ~/.local/bin/preset-gpg-passphrase.sh
-        export GPG_PRESET_DONE=1
-    fi
-fi
-EOF
+# Lock down permissions
+chmod 600 ~/.config/rclone/rclone.conf
 ```
 
 **Test the setup:**
 
 ```bash
-# Logout and login again (to trigger the bashrc preset)
-# Or manually run the preset script once
-~/.local/bin/preset-gpg-passphrase.sh
+# Verify rclone can see the remote
+rclone listremotes   # Should show gdrive-vault:
 
-# Verify you can access the password without prompts
-pass rclone/gdrive-vault
-
-# Start the service
-systemctl --user daemon-reload
-systemctl --user enable --now rclone-2ndbrain.service
+# Run the installer
+./install.sh --server   # or --workstation
 
 # Check status
 systemctl --user status rclone-2ndbrain.service

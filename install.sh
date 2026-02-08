@@ -48,7 +48,7 @@ echo
 # -----------------------------------------------------------------------
 # 1. Check prerequisites
 # -----------------------------------------------------------------------
-REQUIRED_CMDS=(rclone pass)
+REQUIRED_CMDS=(rclone)
 if [[ "${MODE}" == "server" ]]; then
     REQUIRED_CMDS+=(uv python3)
 fi
@@ -60,29 +60,21 @@ for cmd in "${REQUIRED_CMDS[@]}"; do
     fi
 done
 
-# Check rclone config password is in pass
-if ! pass show rclone/gdrive-vault &>/dev/null; then
-    echo "ERROR: rclone config password not found in pass store."
-    echo
-    echo "  Run the GPG + pass setup script first:"
-    echo "    ./setup-gpg-pass.sh"
-    echo
-    echo "  This will create a GPG key, initialise pass, store the rclone"
-    echo "  password, and configure the keygrip preset for headless operation."
-    echo "  See docs/setup_rclone.md for full details."
-    echo
-    echo "  Then re-run this installer."
-    exit 1
+# Ensure rclone config is not world-readable
+RCLONE_CONF="${HOME}/.config/rclone/rclone.conf"
+if [[ -f "${RCLONE_CONF}" ]]; then
+    chmod 600 "${RCLONE_CONF}"
+    echo "→ rclone.conf permissions set to 600."
 fi
 
 # Check rclone remote exists
-if ! rclone listremotes --password-command "pass rclone/gdrive-vault" 2>/dev/null | grep -q "^gdrive-vault:"; then
+if ! rclone listremotes 2>/dev/null | grep -q "^gdrive-vault:"; then
     echo "ERROR: rclone remote 'gdrive-vault:' not found."
     echo "  Run 'rclone config' to set it up. See docs/setup_rclone.md."
     exit 1
 fi
 
-echo "→ rclone remote and password store OK."
+echo "→ rclone remote OK."
 
 # -----------------------------------------------------------------------
 # 2. Python environment (server only)
@@ -201,7 +193,6 @@ else
     if [[ ! -d "${BISYNC_STATE}" ]] || [[ -z "$(ls -A "${BISYNC_STATE}" 2>/dev/null)" ]]; then
         echo "→ Running initial bisync (--resync to establish baseline)..."
         rclone bisync gdrive-vault: "${MOUNT_DIR}" \
-            --password-command "pass rclone/gdrive-vault" \
             --resync
         echo "  Baseline sync complete."
     fi

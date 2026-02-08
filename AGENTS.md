@@ -17,7 +17,7 @@ structured Markdown with YAML frontmatter into the correct vault folder.
 - **Vault storage:** rclone to Google Drive at `~/Documents/2ndBrain/`
   (vault root: `~/Documents/2ndBrain/2ndBrainVault/`)
 - **Service manager:** systemd user units (no sudo required)
-- **Secrets:** GPG + `pass` for rclone config encryption
+- **Secrets:** `.env` for API keys; rclone config protected by file permissions (mode 600)
 
 ## Deployment Modes
 The system supports two deployment modes via `install.sh`:
@@ -74,7 +74,7 @@ docs/
 │   └── decisions.md           # Architecture Decision Records (ADRs)
 ├── how-to/
 │   ├── contribute.md          # Contributing guide
-│   ├── setup_rclone.md        # rclone + GPG/pass setup guide
+│   ├── setup_rclone.md        # rclone setup guide
 │   └── setup_slack_app.md     # Slack app creation + OAuth scopes guide
 └── tutorials/
     └── installation.md        # Installation tutorial
@@ -82,7 +82,6 @@ migrate_old_vault/
 ├── migrate_prompt.md          # System prompt for AI-assisted vault migration
 └── migrate_vault.py           # Standalone script for migrating an old vault
 install.sh           # Two-mode installer (--server / --workstation)
-setup-gpg-pass.sh    # GPG key, pass, keygrip preset automation
 restart.sh           # Convenience script for systemd reload/restart/logs
 Dockerfile           # Container build for the Slack listener
 pyproject.toml       # uv/pip metadata and dependencies
@@ -327,8 +326,7 @@ Delete the old `.base` file from the vault to trigger regeneration.
 ### rclone-2ndbrain.service (server only)
 - FUSE mount with `--vfs-cache-mode full`, `--poll-interval 15s`,
   `--dir-cache-time 5s`.
-- Uses `--password-command "pass rclone/gdrive-vault"` — requires
-  GPG/pass infrastructure (see `setup-gpg-pass.sh`).
+- rclone config at `~/.config/rclone/rclone.conf` (mode 600).
 - `ExecStop` does a clean `fusermount -u`.
 
 ### rclone-2ndbrain-bisync.service + .timer (workstation only)
@@ -342,15 +340,13 @@ connected"), use: `fusermount -uz ~/Documents/2ndBrain` then restart
 the service.
 
 ## Installation
-1. **GPG + pass:** Run `./setup-gpg-pass.sh` first on any new machine.
-   This creates the GPG key, password store, and keygrip preset needed
-   for rclone to decrypt its config non-interactively.
-2. **rclone remote:** Configure via `rclone config` — see
-   `docs/setup_rclone.md`.
-3. **Install services:** `./install.sh --server` or `./install.sh --workstation`.
-4. **Slack app (server only):** Create the app and get tokens — see
+1. **rclone remote:** Configure via `rclone config` — see
+   `docs/setup_rclone.md`. The installer enforces `chmod 600` on the
+   config file.
+2. **Install services:** `./install.sh --server` or `./install.sh --workstation`.
+3. **Slack app (server only):** Create the app and get tokens — see
    `docs/setup_slack_app.md`. Fill in `.env` from `.env.template`.
-5. **Enable linger (server only):** `sudo loginctl enable-linger $USER`
+4. **Enable linger (server only):** `sudo loginctl enable-linger $USER`
    so services run on boot without a login session.
 
 ## Common Workflows
@@ -372,9 +368,8 @@ the service.
 - **Change the daily briefing time:** Set `BRIEFING_TIME=08:00` in `.env`.
   Set `BRIEFING_CHANNEL` to a Slack channel ID to enable it.
 - **Install deps:** `uv sync` (not pip install)
-- **Migrate to new machine:** Copy `~/.gnupg/`, `~/.password-store/`,
-  and `~/.config/rclone/rclone.conf` from the old machine, then run
-  `./setup-gpg-pass.sh` and `./install.sh`. See `docs/setup_rclone.md`
+- **Migrate to new machine:** Copy `~/.config/rclone/rclone.conf` from
+  the old machine, then run `./install.sh`. See `docs/setup_rclone.md`
   section 6 for details.
 
 ## Environment Variables (.env)

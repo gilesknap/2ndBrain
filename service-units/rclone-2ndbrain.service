@@ -4,11 +4,8 @@ After=network-online.target
 
 [Service]
 Type=simple
-# This ensures the service knows where to find your login session's keyring
-Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 # Ensure the path to rclone is correct (usually /usr/bin/rclone)
 ExecStart=/usr/bin/rclone mount gdrive-vault: %h/Documents/2ndBrain \
-  --password-command "pass rclone/gdrive-vault" \
   --vfs-cache-mode full \
   --vfs-cache-max-age 24h \
   --vfs-cache-max-size 10G \

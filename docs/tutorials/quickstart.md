@@ -1,6 +1,6 @@
 # Quick Start
 
-Get 2ndBrain running from scratch in five steps. This guide covers the
+Get 2ndBrain running from scratch in four steps. This guide covers the
 minimal setup — see the linked how-to guides for full details on each
 component.
 
@@ -48,36 +48,23 @@ Verify the installation:
 uv run brain --version
 ```
 
-## 2. Set up GPG + pass
-
-The rclone configuration is encrypted with GPG. Run the automated setup
-script (first time only):
-
-```bash
-./setup-gpg-pass.sh
-```
-
-This creates a GPG key, initialises the `pass` password store, and
-configures `gpg-agent` for non-interactive decryption. See
-[rclone Setup](../how-to/setup_rclone.md) for manual steps and
-troubleshooting.
-
-## 3. Configure rclone and create the Slack app
+## 2. Configure rclone and create the Slack app
 
 These two steps can be done in any order:
 
-- **Slack app** — Create a Socket Mode app with the required OAuth scopes.
-  See [Slack App Setup](../how-to/setup_slack_app.md) for the full
-  walkthrough.
-
-- **rclone** — This can be done for you by the install script (see below).
-  See [rclone Setup](../how-to/setup_rclone.md) for detailed instructions.
+- **rclone** — Set up a Google Drive remote. The install script will
+  handle permissions and service setup. See
+  [rclone Setup](../how-to/setup_rclone.md) for detailed instructions.
 
   ```bash
   rclone config
   ```
 
-## 4. Configure environment variables
+- **Slack app** — Create a Socket Mode app with the required OAuth scopes.
+  See [Slack App Setup](../how-to/setup_slack_app.md) for the full
+  walkthrough.
+
+## 3. Configure environment variables
 
 ```bash
 cp .env.template .env
@@ -98,7 +85,7 @@ Optional settings:
 | `BRIEFING_CHANNEL` | *(none)* | Slack channel ID for daily briefing |
 | `BRIEFING_TIME`    | `07:00`  | Time for the daily briefing       |
 
-## 5. Deploy
+## 4. Deploy
 
 Choose the deployment mode that matches your machine:
 
