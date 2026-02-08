@@ -73,7 +73,7 @@ systemd version available on the machine:
 | Method | Requirement | Boot behaviour |
 |--------|------------|----------------|
 | `systemd-creds` | systemd ≥ 256 | Auto-start — password is encrypted to the host's TPM/credential key and stored at `~/.config/2ndbrain/` |
-| GPG + `pass` | Any systemd | Manual start — user runs `./start-brain.sh` after reboot to unlock GPG agent |
+| GPG + `pass` | Any systemd | Manual start — user runs `./scripts/start-brain.sh` after reboot to unlock GPG agent |
 
 **Existing mitigations (systemd-creds):**
 - Password is encrypted at rest — the `.cred` file is useless

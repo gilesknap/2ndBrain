@@ -11,7 +11,7 @@
 #
 # Safe to re-run — skips encryption if the credential file already exists.
 #
-# Usage:  ./setup-systemd-creds.sh
+# Usage:  ./scripts/setup-systemd-creds.sh
 set -euo pipefail
 
 CACHE_DIR="${HOME}/.config/2ndbrain"
@@ -24,7 +24,7 @@ CRED_NAME="rclone-config-pass"
 if ! command -v systemd-creds &>/dev/null; then
     echo "ERROR: systemd-creds not found."
     echo "  This script requires systemd ≥ 256."
-    echo "  Use ./setup-gpg-pass.sh instead on older systems."
+    echo "  Use ./scripts/setup-gpg-pass.sh instead on older systems."
     exit 1
 fi
 
@@ -33,7 +33,7 @@ SYSTEMD_VER=$(systemctl --version 2>/dev/null | head -1 | awk '{print $2}')
 if [[ "${SYSTEMD_VER}" -lt 256 ]] 2>/dev/null; then
     echo "ERROR: systemd ${SYSTEMD_VER} found, but ≥ 256 is required"
     echo "  for --user encrypted credentials."
-    echo "  Use ./setup-gpg-pass.sh instead."
+    echo "  Use ./scripts/setup-gpg-pass.sh instead."
     exit 1
 fi
 

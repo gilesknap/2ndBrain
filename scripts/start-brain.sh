@@ -8,7 +8,7 @@
 # On machines using systemd-creds, services start automatically —
 # this script is not needed.
 #
-# Usage:  ./start-brain.sh
+# Usage:  ./scripts/start-brain.sh
 set -euo pipefail
 
 # -----------------------------------------------------------------------
@@ -21,7 +21,7 @@ echo
 # This triggers gpg-agent to cache the passphrase
 if ! pass show rclone/gdrive-vault &>/dev/null; then
     echo "ERROR: Could not decrypt rclone/gdrive-vault."
-    echo "  Run ./setup-gpg-pass.sh if not yet configured."
+    echo "  Run ./scripts/setup-gpg-pass.sh if not yet configured."
     exit 1
 fi
 
@@ -58,6 +58,6 @@ elif [[ -f "${UNIT_DIR}/rclone-2ndbrain-bisync.timer" ]]; then
 
 else
     echo "ERROR: No 2ndBrain service units found."
-    echo "  Run ./install.sh first."
+    echo "  Run ./scripts/install.sh first."
     exit 1
 fi

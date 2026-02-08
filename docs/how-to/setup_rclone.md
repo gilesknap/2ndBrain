@@ -1,8 +1,8 @@
 # Rclone Setup: Encrypted & Restricted
 
 ```{note}
-Most of this guide is automated by running `./setup-gpg-pass.sh` followed by
-`./install.sh`. The scripts will prompt you to install any missing system
+Most of this guide is automated by running `./scripts/setup-gpg-pass.sh` followed by
+`./scripts/install.sh`. The scripts will prompt you to install any missing system
 packages (rclone, fuse3, pass). Read on if you need to understand the
 individual steps or troubleshoot.
 ```

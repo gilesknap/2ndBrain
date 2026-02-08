@@ -2,7 +2,7 @@
 # setup-gpg-pass.sh — Set up GPG + pass to encrypt the rclone config password.
 #
 # Fallback for machines without systemd ≥ 256 (no systemd-creds --user).
-# Services are NOT auto-started; use ./start-brain.sh to unlock GPG and
+# Services are NOT auto-started; use ./scripts/start-brain.sh to unlock GPG and
 # start services after each reboot.
 #
 # This script:
@@ -12,7 +12,7 @@
 #
 # Safe to re-run — skips steps that are already done.
 #
-# Usage:  ./setup-gpg-pass.sh
+# Usage:  ./scripts/setup-gpg-pass.sh
 set -euo pipefail
 
 echo "=== GPG + pass Setup for 2ndBrain ==="
@@ -83,5 +83,5 @@ fi
 echo
 echo "=== GPG + pass setup complete ==="
 echo
-echo "After running install.sh, use ./start-brain.sh to unlock GPG"
+echo "After running install.sh, use ./scripts/start-brain.sh to unlock GPG"
 echo "and start the 2ndBrain services after each reboot."

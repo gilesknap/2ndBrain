@@ -82,11 +82,13 @@ docs/
 migrate_old_vault/
 ├── migrate_prompt.md          # System prompt for AI-assisted vault migration
 └── migrate_vault.py           # Standalone script for migrating an old vault
-install.sh           # Two-mode installer (--server / --workstation)
-setup-systemd-creds.sh # Encrypt rclone password via systemd-creds (≥256)
-setup-gpg-pass.sh    # GPG + pass fallback for older systemd
-start-brain.sh       # Unlock GPG and start services (GPG mode only)
-restart.sh           # Convenience script for systemd reload/restart/logs
+scripts/
+├── install.sh       # Two-mode installer (--server / --workstation)
+├── uninstall.sh     # Remove services and credential stores
+├── setup-systemd-creds.sh # Encrypt rclone password via systemd-creds (≥256)
+├── setup-gpg-pass.sh    # GPG + pass fallback for older systemd
+├── start-brain.sh       # Unlock GPG and start services (GPG mode only)
+└── restart.sh           # Convenience script for systemd reload/restart/logs
 Dockerfile           # Container build for the Slack listener
 pyproject.toml       # uv/pip metadata and dependencies
 .env                 # Runtime secrets (not committed)
@@ -349,23 +351,25 @@ the service.
 ## Installation
 1. **rclone remote:** Configure via `rclone config` — see
    `docs/setup_rclone.md`.
-2. **Install services:** `./install.sh --server` or `./install.sh --workstation`.
+2. **Install services:** `./scripts/install.sh --server` or `./scripts/install.sh --workstation`.
 3. **Set up credentials (pick one):**
-   - **systemd ≥ 256:** `./setup-systemd-creds.sh` — encrypts the rclone
+   - **systemd ≥ 256:** `./scripts/setup-systemd-creds.sh` — encrypts the rclone
      password so services auto-start on boot.
-   - **Older systemd:** `./setup-gpg-pass.sh` — stores the password in
-     GPG-encrypted `pass`. After each reboot, run `./start-brain.sh`.
+   - **Older systemd:** `./scripts/setup-gpg-pass.sh` — stores the password in
+     GPG-encrypted `pass`. After each reboot, run `./scripts/start-brain.sh`.
 4. **Slack app (server only):** Create the app and get tokens — see
    `docs/setup_slack_app.md`. Fill in `.env` from `.env.template`.
 5. **Enable linger (server only):** `sudo loginctl enable-linger $USER`
    so services run on boot without a login session.
+6. **Uninstall:** `./scripts/uninstall.sh` removes services and credentials
+   (useful for re-testing deployment from scratch).
 
 ## Common Workflows
 - **After any code change:** Always run
   `uv run ruff check --fix; uv run pyright tests src` to lint and
   type-check before committing.
 - **Update code:** After modifying any `src/brain/*.py` file, run
-  `systemctl --user restart brain.service` or use `./restart.sh`.
+  `systemctl --user restart brain.service` or use `./scripts/restart.sh`.
 - **Monitor logs:** `journalctl --user -u brain.service -f`
 - **Check rclone (server):** Ensure the mount is active at
   `~/Documents/2ndBrain/` before attempting file operations.
@@ -380,7 +384,7 @@ the service.
   Set `BRIEFING_CHANNEL` to a Slack channel ID to enable it.
 - **Install deps:** `uv sync` (not pip install)
 - **Migrate to new machine:** Copy `~/.config/rclone/rclone.conf` from
-  the old machine, then run `./install.sh` and the appropriate credential
+  the old machine, then run `./scripts/install.sh` and the appropriate credential
   setup script. For GPG mode, also copy `~/.gnupg/` and
   `~/.password-store/`. See `docs/setup_rclone.md` for details.
 

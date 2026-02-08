@@ -52,16 +52,12 @@ uv run brain --version
 
 These two steps can be done in any order:
 
+- **rclone** — This can be done for you by the `scripts/install.sh` script (see below).
+  See [rclone Setup](../how-to/setup_rclone.md) for detailed instructions.
+
 - **Slack app** — Create a Socket Mode app with the required OAuth scopes.
   See [Slack App Setup](../how-to/setup_slack_app.md) for the full
   walkthrough.
-
-- **rclone** — This can be done for you by the install script (see below).
-  See [rclone Setup](../how-to/setup_rclone.md) for detailed instructions.
-
-  ```bash
-  rclone config
-  ```
 
 ## 3. Configure environment variables
 
@@ -90,10 +86,10 @@ Choose the deployment mode that matches your machine:
 
 ```bash
 # Headless server: rclone FUSE mount + Slack listener
-./install.sh --server
+./scripts/install.sh --server
 
 # Desktop with Obsidian: rclone bisync (no listener)
-./install.sh --workstation
+./scripts/install.sh --workstation
 ```
 
 For the server mode, enable linger so the service starts on boot:
@@ -118,7 +114,7 @@ If the version is **256 or higher**, use the hardware-backed credential
 encryption:
 
 ```bash
-./setup-systemd-creds.sh
+./scripts/setup-systemd-creds.sh
 ```
 
 This encrypts the rclone password to the host's TPM/credential key and
@@ -130,7 +126,7 @@ with no manual unlock needed.
 On older systemd (Ubuntu 24.04 = 255, RHEL 9 ≈ 252), fall back to GPG:
 
 ```bash
-./setup-gpg-pass.sh
+./scripts/setup-gpg-pass.sh
 ```
 
 This creates a GPG key, initialises the `pass` password store, and
@@ -139,7 +135,7 @@ this mode — after each reboot you must unlock GPG and start them
 manually with:
 
 ```bash
-./start-brain.sh
+./scripts/start-brain.sh
 ```
 
 This prompts for your GPG passphrase, caches it in `gpg-agent`, and

@@ -5,18 +5,19 @@
 # or a workstation (just syncs the vault for Obsidian).
 #
 # Credential setup for rclone is handled separately:
-#   - systemd ≥ 256: run ./setup-systemd-creds.sh (auto-start on boot)
-#   - Older systemd: run ./setup-gpg-pass.sh  (manual start via ./start-brain.sh)
+#   - systemd ≥ 256: run ./scripts/setup-systemd-creds.sh (auto-start on boot)
+#   - Older systemd: run ./scripts/setup-gpg-pass.sh  (manual start via ./scripts/start-brain.sh)
 #
 # Server mode:   rclone mount + brain.service
 # Workstation:   rclone bisync on a 30s timer
 #
-# Usage:  ./install.sh [--server | --workstation]
+# Usage:  ./scripts/install.sh [--server | --workstation]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 UNIT_DIR="${HOME}/.config/systemd/user"
-ENV_FILE="${SCRIPT_DIR}/.env"
+ENV_FILE="${PROJECT_DIR}/.env"
 MOUNT_DIR="${HOME}/Documents/2ndBrain"
 
 # -----------------------------------------------------------------------
@@ -46,7 +47,7 @@ fi
 
 echo
 echo "=== 2ndBrain Installer (${MODE}) ==="
-echo "Project directory: ${SCRIPT_DIR}"
+echo "Project directory: ${PROJECT_DIR}"
 echo
 
 # -----------------------------------------------------------------------
@@ -80,7 +81,7 @@ else
     echo
     echo "  Option 1 (systemd ≥ 256): systemd-creds is used automatically."
     echo "  Option 2 (older systemd): install 'pass' and 'gpg', then run"
-    echo "           ./setup-gpg-pass.sh"
+    echo "           ./scripts/setup-gpg-pass.sh"
     exit 1
 fi
 echo "→ Credential method: ${CRED_METHOD} (systemd ${SYSTEMD_VER})"
@@ -112,10 +113,10 @@ fi
 # -----------------------------------------------------------------------
 if [[ "${MODE}" == "server" ]]; then
     echo "→ Setting up Python virtual environment..."
-    if [[ ! -d "${SCRIPT_DIR}/.venv" ]]; then
-        uv venv "${SCRIPT_DIR}/.venv"
+    if [[ ! -d "${PROJECT_DIR}/.venv" ]]; then
+        uv venv "${PROJECT_DIR}/.venv"
     fi
-    cd "${SCRIPT_DIR}"
+    cd "${PROJECT_DIR}"
     uv sync
     echo "  Done."
     echo
@@ -148,14 +149,14 @@ if [[ "${MODE}" == "server" ]]; then
 
     echo "→ Installing rclone-2ndbrain.service..."
     sed -e "s|@@RCLONE_PASSWORD_CMD@@|${RCLONE_PASSWORD_CMD}|g" \
-        "${SCRIPT_DIR}/service-units/rclone-2ndbrain.service" \
+        "${PROJECT_DIR}/service-units/rclone-2ndbrain.service" \
         > "${UNIT_DIR}/rclone-2ndbrain.service"
 
     echo "→ Installing brain.service..."
-    sed "s|@@PROJECT_DIR@@|${SCRIPT_DIR}|g" \
-        "${SCRIPT_DIR}/service-units/brain.service" \
+    sed "s|@@PROJECT_DIR@@|${PROJECT_DIR}|g" \
+        "${PROJECT_DIR}/service-units/brain.service" \
         > "${UNIT_DIR}/brain.service"
-    echo "  Installed (project dir: ${SCRIPT_DIR})."
+    echo "  Installed (project dir: ${PROJECT_DIR})."
 
     # Disable workstation units if they were previously installed
     systemctl --user disable --now rclone-2ndbrain-bisync.timer 2>/dev/null || true
@@ -166,11 +167,11 @@ else
 
     echo "→ Installing rclone-2ndbrain-bisync.service..."
     sed -e "s|@@RCLONE_PASSWORD_CMD@@|${RCLONE_PASSWORD_CMD}|g" \
-        "${SCRIPT_DIR}/service-units/rclone-2ndbrain-bisync.service" \
+        "${PROJECT_DIR}/service-units/rclone-2ndbrain-bisync.service" \
         > "${UNIT_DIR}/rclone-2ndbrain-bisync.service"
 
     echo "→ Installing rclone-2ndbrain-bisync.timer..."
-    cp "${SCRIPT_DIR}/service-units/rclone-2ndbrain-bisync.timer" "${UNIT_DIR}/"
+    cp "${PROJECT_DIR}/service-units/rclone-2ndbrain-bisync.timer" "${UNIT_DIR}/"
 
     # Disable server units if they were previously installed
     systemctl --user disable --now rclone-2ndbrain.service 2>/dev/null || true
@@ -201,19 +202,19 @@ if [[ "${MODE}" == "server" ]]; then
         echo "     systemctl --user start rclone-2ndbrain.service"
         echo "     systemctl --user start brain.service"
     elif [[ "${CRED_METHOD}" == "gpg" ]]; then
-        echo "→ Enabling server services (will start via ./start-brain.sh)..."
+        echo "→ Enabling server services (will start via ./scripts/start-brain.sh)..."
         systemctl --user enable rclone-2ndbrain.service
         systemctl --user enable brain.service
         echo
         echo "⚠  GPG credential method — services will not auto-start."
         echo "   After each reboot, run:"
-        echo "     ./start-brain.sh"
+        echo "     ./scripts/start-brain.sh"
     else
         # systemd-creds: check if credential file exists
         if [[ ! -f "${CRED_FILE}" ]]; then
             echo
             echo "→ Service units installed. Now run:"
-            echo "    ./setup-systemd-creds.sh"
+            echo "    ./scripts/setup-systemd-creds.sh"
             echo "  to encrypt the rclone config password and start the services."
         else
             echo "→ Enabling and (re)starting server services..."
@@ -237,18 +238,18 @@ else
     # Workstation: run initial bisync with --resync if no prior state
     BISYNC_STATE="${HOME}/.cache/rclone/bisync"
     if [[ "${CRED_METHOD}" == "gpg" ]]; then
-        echo "→ Enabling bisync timer (will start via ./start-brain.sh)..."
+        echo "→ Enabling bisync timer (will start via ./scripts/start-brain.sh)..."
         systemctl --user enable rclone-2ndbrain-bisync.timer
         echo
         echo "⚠  GPG credential method — services will not auto-start."
         echo "   After each reboot, run:"
-        echo "     ./start-brain.sh"
+        echo "     ./scripts/start-brain.sh"
     else
         # systemd-creds: check if credential file exists
         if [[ ! -f "${CRED_FILE:-}" ]]; then
             echo
             echo "→ Service units installed. Now run:"
-            echo "    ./setup-systemd-creds.sh"
+            echo "    ./scripts/setup-systemd-creds.sh"
             echo "  to encrypt the rclone config password and start the timer."
         else
             echo "→ Enabling bisync timer..."
