@@ -7,6 +7,7 @@ delegates to the agent router, and replies in Slack.
 
 import logging
 import os
+import re
 
 import requests
 from google.genai import types
@@ -17,6 +18,18 @@ from .vault import Vault
 
 # Maximum number of prior thread messages to include for context
 MAX_THREAD_MESSAGES = 10
+
+# Regex to find URLs in message text (Slack wraps them in < >)
+_URL_PATTERN = re.compile(r"<(https?://[^>|]+)(?:\|[^>]*)?>")
+
+# oEmbed endpoints keyed by domain fragments.
+# Each value is the provider's oEmbed URL; the video URL is appended as ?url=…
+_OEMBED_ENDPOINTS: dict[str, str] = {
+    "youtube.com": "https://www.youtube.com/oembed",
+    "youtu.be": "https://www.youtube.com/oembed",
+    "music.youtube.com": "https://www.youtube.com/oembed",
+    "vimeo.com": "https://vimeo.com/api/oembed.json",
+}
 
 
 def download_slack_file(url: str) -> bytes:
@@ -52,6 +65,54 @@ def download_slack_file(url: str) -> bytes:
         raise ValueError("Slack returned HTML. Token likely lacks 'files:read'.")
 
     return resp.content
+
+
+def _fetch_url_titles(text: str) -> str:
+    """Extract URLs from Slack message text and fetch their page titles.
+
+    Uses oEmbed APIs (YouTube, Vimeo) to retrieve the actual video title
+    and author, then appends the metadata so Gemini can use them for
+    naming the note.
+
+    Returns:
+        Extra context string to append to the message, or empty string.
+    """
+    urls = _URL_PATTERN.findall(text)
+    if not urls:
+        return ""
+
+    enrichments: list[str] = []
+    for url in urls:
+        # Find the matching oEmbed endpoint for this URL's domain
+        oembed_url: str | None = None
+        for domain, endpoint in _OEMBED_ENDPOINTS.items():
+            if domain in url:
+                oembed_url = endpoint
+                break
+        if oembed_url is None:
+            continue
+
+        try:
+            resp = requests.get(
+                oembed_url,
+                params={"url": url, "format": "json"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            title = data.get("title", "").strip()
+            author = data.get("author_name", "").strip()
+            if title:
+                parts = [f'Page title for {url} is: "{title}".']
+                if author:
+                    parts.append(f'Author/channel: "{author}".')
+                parts.append("Use this as the note title and filename.")
+                enrichments.append(f"[System: {' '.join(parts)}]")
+                logging.info("oEmbed title for %s: %s (by %s)", url, title, author)
+        except Exception as e:
+            logging.warning("Failed to fetch oEmbed for %s: %s", url, e)
+
+    return "\n".join(enrichments)
 
 
 def _process_attachments(files: list[dict], vault: Vault) -> list:
@@ -194,6 +255,10 @@ def register_listeners(app, vault: Vault, router: Router):
             # Process attachments
             attachment_context = _process_attachments(files, vault)
 
+            # Enrich message with URL metadata (video titles, etc.)
+            url_context = _fetch_url_titles(text)
+            enriched_text = f"{text}\n{url_context}" if url_context else text
+
             # Fetch thread history if this message is in a thread
             thread_history = []
             if thread_ts:
@@ -204,7 +269,7 @@ def register_listeners(app, vault: Vault, router: Router):
 
             # Build context and route to the appropriate agent
             context = MessageContext(
-                raw_text=text,
+                raw_text=enriched_text,
                 attachment_context=attachment_context,
                 vault=vault,
                 thread_history=thread_history,

@@ -7,8 +7,23 @@ project discovery, and Obsidian Bases file generation.
 
 import logging
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
+
+#: Directory containing .base and .md template files shipped with the package.
+_TEMPLATES_DIR = Path(__file__).parent / "vault_templates"
+
+#: Mapping of template filename → vault-relative destination path.
+_TEMPLATE_MAP: dict[str, str] = {
+    "Projects.base": "Projects/Projects.base",
+    "Actions.base": "Actions/Actions.base",
+    "Media.base": "Media/Media.base",
+    "Reference.base": "Reference/Reference.base",
+    "Memories.base": "Memories/Memories.base",
+    "Dashboard.base": "_brain/Dashboard.base",
+    "Dashboard.md": "Dashboard.md",
+}
 
 # Category folders and their descriptions
 CATEGORIES = {
@@ -16,6 +31,7 @@ CATEGORIES = {
     "Actions": "Tasks and to-dos with due dates and status tracking",
     "Media": "Books, films, TV, podcasts, articles, videos to consume",
     "Reference": "How-tos, explanations, useful information to find again",
+    "Memories": "Personal memories, family photos, experiences, milestones",
     "Attachments": "Binary files (images, PDFs) linked from categorised notes",
     "Inbox": "Uncategorised fallback for ambiguous captures",
 }
@@ -155,6 +171,107 @@ class Vault:
         file_path.write_text(content, encoding="utf-8")
         logging.info(f"Saved note: {folder}/{filename}")
         return file_path
+
+    # ------------------------------------------------------------------
+    # Note editing
+    # ------------------------------------------------------------------
+
+    def update_frontmatter(
+        self,
+        file_path: Path,
+        updates: dict[str, str | None],
+    ) -> dict[str, str]:
+        """Update YAML frontmatter fields in an existing markdown note.
+
+        Args:
+            file_path: Absolute path to the .md file.
+            updates: Dict of field→value. Set value to ``None``
+                     to remove a field.
+
+        Returns:
+            Dict of actually changed fields {field: new_value}
+            (or {field: "<removed>"} for deletions).
+
+        Raises:
+            FileNotFoundError: If *file_path* does not exist.
+            ValueError: If the file has no YAML frontmatter block.
+        """
+        if not file_path.exists():
+            raise FileNotFoundError(file_path)
+
+        text = file_path.read_text(encoding="utf-8")
+        if not text.startswith("---"):
+            raise ValueError(f"No frontmatter block in {file_path.name}")
+
+        end = text.find("---", 3)
+        if end == -1:
+            raise ValueError(f"Unterminated frontmatter in {file_path.name}")
+
+        fm_block = text[3:end]
+        body = text[end + 3 :]  # everything after the closing ---
+
+        # Parse existing lines preserving order
+        fm_lines: list[str] = fm_block.strip().splitlines()
+        existing_keys: dict[str, int] = {}
+        for i, line in enumerate(fm_lines):
+            if ":" in line:
+                key = line.partition(":")[0].strip()
+                existing_keys[key] = i
+
+        changed: dict[str, str] = {}
+
+        for key, value in updates.items():
+            if value is None:
+                # Remove field
+                if key in existing_keys:
+                    idx = existing_keys[key]
+                    fm_lines[idx] = ""  # blank it, cleaned up below
+                    changed[key] = "<removed>"
+            else:
+                new_line = f"{key}: {value}"
+                if key in existing_keys:
+                    idx = existing_keys[key]
+                    if fm_lines[idx].strip() != new_line:
+                        fm_lines[idx] = new_line
+                        changed[key] = str(value)
+                else:
+                    fm_lines.append(new_line)
+                    changed[key] = str(value)
+
+        if not changed:
+            return changed
+
+        # Re-assemble file
+        cleaned = [ln for ln in fm_lines if ln.strip()]
+        new_fm = "\n".join(cleaned)
+        new_text = f"---\n{new_fm}\n---{body}"
+        file_path.write_text(new_text, encoding="utf-8")
+        logging.info("Updated frontmatter in %s: %s", file_path.name, changed)
+        return changed
+
+    def find_note(self, filename: str, folder: str | None = None) -> Path | None:
+        """Locate a note by exact filename, optionally limited to a folder.
+
+        The resolved path is verified to remain under the vault root
+        to prevent path-traversal attacks (e.g. ``../secrets.md``).
+
+        Returns the absolute path, or ``None`` if not found.
+        """
+        if folder:
+            candidate = (self.base_path / folder / filename).resolve()
+            if not candidate.is_relative_to(self.base_path.resolve()):
+                logging.warning("Path traversal blocked: %s", filename)
+                return None
+            return candidate if candidate.is_file() else None
+
+        for cat in CATEGORIES:
+            candidate = (self.base_path / cat / filename).resolve()
+            if not candidate.is_relative_to(self.base_path.resolve()):
+                logging.warning("Path traversal blocked: %s", filename)
+                return None
+            if candidate.is_file():
+                return candidate
+        return None
 
     # ------------------------------------------------------------------
     # Attachment handling
@@ -363,6 +480,138 @@ class Vault:
         return results
 
     # ------------------------------------------------------------------
+    # Metadata index (lightweight — no file contents sent to Gemini)
+    # ------------------------------------------------------------------
+
+    def index_all_notes(
+        self,
+        folders: list[str] | None = None,
+        max_results: int = 500,
+    ) -> list[dict]:
+        """Build a compact metadata index of every note in the vault.
+
+        Returns a list of dicts with: filename, folder, size_bytes,
+        modified, word_count, and frontmatter.
+        No file body text is loaded — only stat() and frontmatter.
+        """
+        search_folders = folders or list(CATEGORIES)
+        search_folders = [f for f in search_folders if f in VALID_FOLDERS]
+        results: list[dict] = []
+
+        for folder in search_folders:
+            folder_path = self.base_path / folder
+            if not folder_path.exists():
+                continue
+
+            glob = "*" if folder == "Attachments" else "*.md"
+            for fp in folder_path.glob(glob):
+                if not fp.is_file():
+                    continue
+
+                is_md = fp.suffix == ".md"
+                fm = (self._parse_frontmatter(fp) or {}) if is_md else {}
+                stat = fp.stat()
+
+                # Word count from size estimate (avoids full read)
+                word_count = 0
+                if is_md:
+                    # ~6 bytes per word is a rough English estimate
+                    word_count = stat.st_size // 6
+
+                results.append(
+                    {
+                        "filename": fp.name,
+                        "folder": folder,
+                        "frontmatter": fm,
+                        "size_bytes": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime).strftime(
+                            "%Y-%m-%d %H:%M"
+                        ),
+                        "word_count": word_count,
+                    }
+                )
+                if len(results) >= max_results:
+                    return results
+
+        return results
+
+    # ------------------------------------------------------------------
+    # Grep search (returns matching filenames + snippets)
+    # ------------------------------------------------------------------
+
+    def grep_notes(
+        self,
+        pattern: str,
+        folders: list[str] | None = None,
+        max_results: int = 100,
+        context_chars: int = 80,
+    ) -> list[dict]:
+        """Search vault file contents for a text pattern.
+
+        Returns a list of dicts with: filename, folder, matches
+        (list of short context snippets around each hit).
+
+        This is a local operation — no Gemini call required.
+        """
+        search_folders = folders or list(CATEGORIES)
+        search_folders = [f for f in search_folders if f in VALID_FOLDERS]
+        lower_pattern = pattern.lower()
+        results: list[dict] = []
+
+        for folder in search_folders:
+            folder_path = self.base_path / folder
+            if not folder_path.exists():
+                continue
+
+            for fp in folder_path.glob("*.md"):
+                if not fp.is_file():
+                    continue
+
+                try:
+                    text = fp.read_text(encoding="utf-8")
+                except Exception:
+                    continue
+
+                lower_text = text.lower()
+                positions = []
+                start = 0
+                while True:
+                    idx = lower_text.find(lower_pattern, start)
+                    if idx == -1:
+                        break
+                    positions.append(idx)
+                    start = idx + 1
+
+                if not positions:
+                    continue
+
+                # Extract short snippets around each match
+                snippets: list[str] = []
+                for pos in positions[:3]:  # max 3 snippets per file
+                    snip_start = max(0, pos - context_chars)
+                    snip_end = min(len(text), pos + len(pattern) + context_chars)
+                    snippet = text[snip_start:snip_end].replace("\n", " ")
+                    if snip_start > 0:
+                        snippet = "..." + snippet
+                    if snip_end < len(text):
+                        snippet = snippet + "..."
+                    snippets.append(snippet)
+
+                results.append(
+                    {
+                        "filename": fp.name,
+                        "folder": folder,
+                        "match_count": len(positions),
+                        "snippets": snippets,
+                    }
+                )
+
+                if len(results) >= max_results:
+                    return results
+
+        return results
+
+    # ------------------------------------------------------------------
     # Frontmatter parsing
     # ------------------------------------------------------------------
 
@@ -404,210 +653,18 @@ class Vault:
     # ------------------------------------------------------------------
 
     def _ensure_base_files(self):
-        """Generate Obsidian .base files if they don't already exist."""
-        bases = {
-            "Projects/Projects.base": self._projects_base(),
-            "Actions/Actions.base": self._actions_base(),
-            "Media/Media.base": self._media_base(),
-            "Reference/Reference.base": self._reference_base(),
-            "Dashboard.base": self._dashboard_base(),
-        }
+        """Copy vault template files when the source is newer or dest is missing."""
+        for template_name, vault_rel in _TEMPLATE_MAP.items():
+            src = _TEMPLATES_DIR / template_name
+            dest = self.base_path / vault_rel
 
-        for rel_path, content in bases.items():
-            full_path = self.base_path / rel_path
-            if not full_path.exists():
-                full_path.write_text(content, encoding="utf-8")
-                logging.info(f"Created Obsidian base: {rel_path}")
+            if not src.exists():
+                logging.warning("Template not found: %s", src)
+                continue
 
-    @staticmethod
-    def _projects_base() -> str:
-        return """\
-filters:
-  and:
-    - 'file.inFolder("Projects")'
-    - 'file.ext == "md"'
-properties:
-  title:
-    displayName: Title
-  project_name:
-    displayName: Project
-  priority:
-    displayName: Priority
-  date:
-    displayName: Date
-  tags:
-    displayName: Tags
-views:
-  - type: table
-    name: All Projects
-    order:
-      - note.priority
-      - note.date
-      - note.title
-      - note.project_name
-      - note.tags
-"""
+            if dest.exists() and dest.stat().st_mtime >= src.stat().st_mtime:
+                continue  # vault copy is up-to-date
 
-    @staticmethod
-    def _actions_base() -> str:
-        return """\
-filters:
-  and:
-    - 'file.inFolder("Actions")'
-    - 'file.ext == "md"'
-properties:
-  title:
-    displayName: Title
-  action_item:
-    displayName: Action
-  status:
-    displayName: Status
-  due_date:
-    displayName: Due Date
-  priority:
-    displayName: Priority
-  project:
-    displayName: Project
-views:
-  - type: table
-    name: Open Actions
-    filters:
-      and:
-        - 'status != "done"'
-        - 'status != "completed"'
-    order:
-      - note.due_date
-      - note.priority
-      - note.action_item
-      - note.status
-      - note.project
-  - type: table
-    name: All Actions
-    order:
-      - note.due_date
-      - note.priority
-      - note.action_item
-      - note.status
-      - note.project
-"""
-
-    @staticmethod
-    def _media_base() -> str:
-        return """\
-filters:
-  and:
-    - 'file.inFolder("Media")'
-    - 'file.ext == "md"'
-properties:
-  media_title:
-    displayName: Title
-  media_type:
-    displayName: Type
-  creator:
-    displayName: Creator
-  status:
-    displayName: Status
-  url:
-    displayName: URL
-views:
-  - type: table
-    name: All Media
-    groupBy:
-      property: note.media_type
-      direction: ASC
-    order:
-      - note.media_title
-      - note.media_type
-      - note.creator
-      - note.status
-      - note.url
-  - type: table
-    name: To Consume
-    filters:
-      and:
-        - 'status == "to_consume"'
-    order:
-      - note.media_title
-      - note.media_type
-      - note.creator
-"""
-
-    @staticmethod
-    def _reference_base() -> str:
-        return """\
-filters:
-  and:
-    - 'file.inFolder("Reference")'
-    - 'file.ext == "md"'
-properties:
-  title:
-    displayName: Title
-  topic:
-    displayName: Topic
-  tags:
-    displayName: Tags
-  date:
-    displayName: Date
-views:
-  - type: table
-    name: All Reference
-    order:
-      - note.title
-      - note.topic
-      - note.tags
-      - note.date
-"""
-
-    @staticmethod
-    def _dashboard_base() -> str:
-        return """\
-filters:
-  and:
-    - 'file.ext == "md"'
-properties:
-  title:
-    displayName: Title
-  category:
-    displayName: Category
-  status:
-    displayName: Status
-  due_date:
-    displayName: Due Date
-  priority:
-    displayName: Priority
-  date:
-    displayName: Date
-views:
-  - type: table
-    name: "Today's Actions"
-    filters:
-      and:
-        - 'file.inFolder("Actions")'
-        - 'status != "done"'
-        - 'status != "completed"'
-    order:
-      - note.priority
-      - note.due_date
-      - note.title
-      - note.status
-  - type: table
-    name: Recent Captures
-    filters:
-      and:
-        - 'file.mtime > now() - "7 days"'
-    order:
-      - file.mtime
-      - note.title
-      - note.category
-  - type: table
-    name: All Open Actions
-    filters:
-      and:
-        - 'file.inFolder("Actions")'
-        - 'status != "done"'
-        - 'status != "completed"'
-    order:
-      - note.due_date
-      - note.priority
-      - note.title
-"""
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+            logging.info("Synced vault template: %s", vault_rel)
