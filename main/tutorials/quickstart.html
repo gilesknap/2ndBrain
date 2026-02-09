@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Quick Start &#8212; 2ndBrain 0.1.1.dev23+g321ebabfe documentation</title>
+    <title>Quick Start &#8212; 2ndBrain 0.2.1.dev3+g3fdd01a2b documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=0c0b04ef"></script>
+    <script src="../_static/documentation_options.js?v=3201c95f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -493,9 +493,16 @@ that sleeps is fine.</p>
 <li><p>Python 3.12 or later</p></li>
 <li><p><a class="reference external" href="https://docs.astral.sh/uv/">uv</a> package manager</p></li>
 <li><p>A Linux machine (Ubuntu 24.04 recommended)</p></li>
+<li><p><strong>rclone 1.58.0 or later</strong> (required for <code class="docutils literal notranslate"><span class="pre">bisync</span></code> command)</p></li>
 <li><p>A Google account (for Google Drive sync via rclone)</p></li>
 <li><p>A Slack workspace where you can create apps</p></li>
 </ul>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>RHEL/CentOS 8 users</strong>: The default repository has rclone 1.57.0, which
+lacks the <code class="docutils literal notranslate"><span class="pre">bisync</span></code> command. You must upgrade to a newer version. See
+<a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup: RHEL/CentOS 8 Upgrade</span></a> for instructions.</p>
+</div>
 </section>
 <section id="clone-and-install">
 <h2>1. Clone and install<a class="headerlink" href="#clone-and-install" title="Link to this heading">#</a></h2>
@@ -644,9 +651,33 @@ into the vault.</p>
 systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>rclone-2ndbrain-bisync.service
 </pre></div>
 </div>
-<p>The timer should show a <code class="docutils literal notranslate"><span class="pre">LAST</span></code> trigger within the last 30 seconds. Open
-Obsidian and confirm the vault folder appears at
-<code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain/2ndBrainVault/</span></code>.</p>
+<p>The timer should show a <code class="docutils literal notranslate"><span class="pre">LAST</span></code> trigger within the last 30 seconds.</p>
+<section id="initial-vault-sync">
+<h4>Initial Vault Sync<a class="headerlink" href="#initial-vault-sync" title="Link to this heading">#</a></h4>
+<p>The first time you install in workstation mode, rclone will download
+the vault from Google Drive. This happens automatically:</p>
+<ul class="simple">
+<li><p><strong>systemd-creds mode</strong>: The installer runs an initial <code class="docutils literal notranslate"><span class="pre">bisync</span> <span class="pre">--resync</span></code>
+after setting up credentials, which downloads the vault immediately.</p></li>
+<li><p><strong>GPG mode</strong>: After running <code class="docutils literal notranslate"><span class="pre">./scripts/start-brain.sh</span></code>, the timer’s
+first execution will establish the baseline and download the vault.</p></li>
+</ul>
+<p>The vault appears at <code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain/2ndBrainVault/</span></code>. If the Google
+Drive folder is empty (first-time setup), bisync creates an empty local
+vault structure. If you already have notes in the Google Drive folder
+(e.g., from a server installation), they’ll be downloaded on first sync.</p>
+<p>You can watch the sync progress:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>journalctl<span class="w"> </span>--user<span class="w"> </span>-u<span class="w"> </span>rclone-2ndbrain-bisync.service<span class="w"> </span>-f
+</pre></div>
+</div>
+<p>Once the vault folder exists, open it in Obsidian:</p>
+<ol class="arabic simple">
+<li><p>Launch Obsidian</p></li>
+<li><p>“Open folder as vault” → select <code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain/2ndBrainVault/</span></code></p></li>
+<li><p>The vault is now synced — any changes you make in Obsidian will be
+pushed to Google Drive within 30 seconds</p></li>
+</ol>
+</section>
 </section>
 </section>
 <section id="next-steps">
@@ -722,7 +753,10 @@ cooking recipes with #cooking”</p></li>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verify-it-s-running">Verify it’s running</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#server">Server</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#workstation">Workstation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#workstation">Workstation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-vault-sync">Initial Vault Sync</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>

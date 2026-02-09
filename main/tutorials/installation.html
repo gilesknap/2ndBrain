@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Installation &#8212; 2ndBrain 0.1.1.dev23+g321ebabfe documentation</title>
+    <title>Installation &#8212; 2ndBrain 0.2.1.dev3+g3fdd01a2b documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=0c0b04ef"></script>
+    <script src="../_static/documentation_options.js?v=3201c95f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -467,33 +467,47 @@
 <ul class="simple">
 <li><p>Python 3.12 or later</p></li>
 <li><p><a class="reference external" href="https://docs.astral.sh/uv/">uv</a> package manager</p></li>
+<li><p><strong>rclone 1.58.0 or later</strong> (workstation mode requires <code class="docutils literal notranslate"><span class="pre">bisync</span></code>)</p></li>
 <li><p>A configured Slack app (see <a class="reference internal" href="../how-to/setup_slack_app.html"><span class="std std-doc">Slack App Setup</span></a>)</p></li>
 <li><p>rclone configured for Google Drive (see <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a>)</p></li>
 </ul>
 </section>
 <section id="clone-and-install">
 <h2>Clone and install<a class="headerlink" href="#clone-and-install" title="Link to this heading">#</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/gilesknap/2ndBrain.git
-$ cd 2ndBrain
-$ uv sync
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/gilesknap/2ndBrain.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>2ndBrain
+$<span class="w"> </span>uv<span class="w"> </span>sync
 </pre></div>
 </div>
 </section>
 <section id="verify-the-installation">
 <h2>Verify the installation<a class="headerlink" href="#verify-the-installation" title="Link to this heading">#</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ uv run brain --version
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>brain<span class="w"> </span>--version
 </pre></div>
 </div>
 </section>
 <section id="deployment">
 <h2>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">#</a></h2>
 <p>Use the included installer for either server or workstation mode:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ./scripts/install.sh --server       # Headless: rclone FUSE mount + Slack listener
-$ ./scripts/install.sh --workstation  # Desktop:  rclone bisync for Obsidian
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./scripts/install.sh<span class="w"> </span>--server<span class="w">       </span><span class="c1"># Headless: rclone FUSE mount + Slack listener</span>
+$<span class="w"> </span>./scripts/install.sh<span class="w"> </span>--workstation<span class="w">  </span><span class="c1"># Desktop:  rclone bisync for Obsidian</span>
 </pre></div>
 </div>
-<p>See the <a class="reference external" href="https://github.com/gilesknap/2ndBrain#readme">README</a> for full
-deployment details.</p>
+<section id="workstation-initial-sync">
+<h3>Workstation Initial Sync<a class="headerlink" href="#workstation-initial-sync" title="Link to this heading">#</a></h3>
+<p>When installing in workstation mode for the first time, the vault will be
+synced from Google Drive automatically:</p>
+<ul class="simple">
+<li><p>The bisync service checks for existing sync state on every run</p></li>
+<li><p>If no state exists, it performs an initial <code class="docutils literal notranslate"><span class="pre">--resync</span></code> to establish
+the baseline before the regular sync</p></li>
+<li><p>Your vault appears at <code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain/2ndBrainVault/</span></code></p></li>
+</ul>
+<p>For GPG credential mode, the sync happens when you first run
+<code class="docutils literal notranslate"><span class="pre">./scripts/start-brain.sh</span></code> after installation.</p>
+<p>See the <a class="reference internal" href="quickstart.html"><span class="std std-doc">Quick Start</span></a> for the full deployment
+workflow including credential setup.</p>
+</section>
 </section>
 </section>
 
@@ -547,7 +561,10 @@ deployment details.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-and-install">Clone and install</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verify-the-installation">Verify the installation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment">Deployment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment">Deployment</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#workstation-initial-sync">Workstation Initial Sync</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

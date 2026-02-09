@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Rclone Setup: Encrypted &amp; Restricted &#8212; 2ndBrain 0.1.1.dev23+g321ebabfe documentation</title>
+    <title>Rclone Setup: Encrypted &amp; Restricted &#8212; 2ndBrain 0.2.1.dev3+g3fdd01a2b documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=0c0b04ef"></script>
+    <script src="../_static/documentation_options.js?v=3201c95f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -473,16 +473,45 @@ individual steps or troubleshoot.</p>
 <p>This guide provides a secure, portable method for mounting a specific Google Drive folder to a local Linux directory (<code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain</span></code>).</p>
 <section id="prerequisites">
 <h2>1. Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
-<p>Install the required system tools:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ubuntu/Debian/Mint</span>
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
+<p><strong>Minimum rclone version: 1.58.0</strong> (required for <code class="docutils literal notranslate"><span class="pre">bisync</span></code> command)</p>
+<section id="ubuntu-debian-mint">
+<h3>Ubuntu/Debian/Mint<a class="headerlink" href="#ubuntu-debian-mint" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
 
-<span class="c1"># RHEL/Fedora/CentOS</span>
-sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
+<span class="c1"># Verify rclone version (must be ≥ 1.58.0)</span>
+rclone<span class="w"> </span>version
 </pre></div>
 </div>
 </section>
-<hr class="docutils" />
+<section id="rhel-centos-8-upgrade-rclone">
+<h3>RHEL/CentOS 8: Upgrade rclone<a class="headerlink" href="#rhel-centos-8-upgrade-rclone" title="Link to this heading">#</a></h3>
+<p>The RHEL8 repository includes rclone 1.57.0, which predates the <code class="docutils literal notranslate"><span class="pre">bisync</span></code>
+command. Install the latest version directly from rclone.org:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install dependencies</span>
+sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>fuse3<span class="w"> </span>pass
+
+<span class="c1"># Download and install latest rclone</span>
+curl<span class="w"> </span>https://rclone.org/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>bash
+
+<span class="c1"># Verify version (should be ≥ 1.58.0)</span>
+rclone<span class="w"> </span>version
+</pre></div>
+</div>
+</section>
+<section id="fedora-centos-stream">
+<h3>Fedora/CentOS Stream<a class="headerlink" href="#fedora-centos-stream" title="Link to this heading">#</a></h3>
+<p>Newer Fedora releases have rclone ≥ 1.58.0:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>rclone<span class="w"> </span>fuse3<span class="w"> </span>pass
+
+<span class="c1"># Verify version</span>
+rclone<span class="w"> </span>version
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<span id="id2"></span><h3>RHEL/CentOS 8: Upgrade rclone<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+</section>
+</section>
 <section id="configuration-strategy">
 <h2>2. Configuration Strategy<a class="headerlink" href="#configuration-strategy" title="Link to this heading">#</a></h2>
 <p>To ensure the mount is both secure and portable, we use three key principles:</p>
@@ -757,7 +786,13 @@ systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">1. Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">1. Prerequisites</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ubuntu-debian-mint">Ubuntu/Debian/Mint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rhel-centos-8-upgrade-rclone">RHEL/CentOS 8: Upgrade rclone</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fedora-centos-stream">Fedora/CentOS Stream</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">RHEL/CentOS 8: Upgrade rclone</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-strategy">2. Configuration Strategy</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#security-gpg-encrypted-password-storage">3. Security: GPG-Encrypted Password Storage</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-create-or-use-existing-gpg-key">Step 1: Create or Use Existing GPG Key</a></li>

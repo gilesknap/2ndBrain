@@ -11,17 +11,46 @@ This guide provides a secure, portable method for mounting a specific Google Dri
 
 ## 1. Prerequisites
 
-Install the required system tools:
+**Minimum rclone version: 1.58.0** (required for `bisync` command)
+
+### Ubuntu/Debian/Mint
 
 ```bash
-# Ubuntu/Debian/Mint
 sudo apt install rclone fuse3 pass
 
-# RHEL/Fedora/CentOS
-sudo yum install rclone fuse3 pass
+# Verify rclone version (must be ≥ 1.58.0)
+rclone version
 ```
 
----
+### RHEL/CentOS 8: Upgrade rclone
+
+The RHEL8 repository includes rclone 1.57.0, which predates the `bisync`
+command. Install the latest version directly from rclone.org:
+
+```bash
+# Install dependencies
+sudo yum install fuse3 pass
+
+# Download and install latest rclone
+curl https://rclone.org/install.sh | sudo bash
+
+# Verify version (should be ≥ 1.58.0)
+rclone version
+```
+
+### Fedora/CentOS Stream
+
+Newer Fedora releases have rclone ≥ 1.58.0:
+
+```bash
+sudo dnf install rclone fuse3 pass
+
+# Verify version
+rclone version
+```
+
+(rhel-centos-8-upgrade-rclone)=
+### RHEL/CentOS 8: Upgrade rclone
 
 ## 2. Configuration Strategy
 

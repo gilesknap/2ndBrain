@@ -31,8 +31,15 @@ that sleeps is fine.
 - Python 3.12 or later
 - [uv](https://docs.astral.sh/uv/) package manager
 - A Linux machine (Ubuntu 24.04 recommended)
+- **rclone 1.58.0 or later** (required for `bisync` command)
 - A Google account (for Google Drive sync via rclone)
 - A Slack workspace where you can create apps
+
+```{important}
+**RHEL/CentOS 8 users**: The default repository has rclone 1.57.0, which
+lacks the `bisync` command. You must upgrade to a newer version. See
+[rclone Setup: RHEL/CentOS 8 Upgrade](../how-to/setup_rclone.md) for instructions.
+```
 
 ## 1. Clone and install
 
@@ -175,9 +182,35 @@ systemctl --user list-timers rclone-2ndbrain-bisync.timer
 systemctl --user status rclone-2ndbrain-bisync.service
 ```
 
-The timer should show a `LAST` trigger within the last 30 seconds. Open
-Obsidian and confirm the vault folder appears at
-`~/Documents/2ndBrain/2ndBrainVault/`.
+The timer should show a `LAST` trigger within the last 30 seconds.
+
+#### Initial Vault Sync
+
+The first time you install in workstation mode, rclone will download
+the vault from Google Drive. This happens automatically:
+
+- **systemd-creds mode**: The installer runs an initial `bisync --resync`
+  after setting up credentials, which downloads the vault immediately.
+- **GPG mode**: After running `./scripts/start-brain.sh`, the timer's
+  first execution will establish the baseline and download the vault.
+
+The vault appears at `~/Documents/2ndBrain/2ndBrainVault/`. If the Google
+Drive folder is empty (first-time setup), bisync creates an empty local
+vault structure. If you already have notes in the Google Drive folder
+(e.g., from a server installation), they'll be downloaded on first sync.
+
+You can watch the sync progress:
+
+```bash
+journalctl --user -u rclone-2ndbrain-bisync.service -f
+```
+
+Once the vault folder exists, open it in Obsidian:
+
+1. Launch Obsidian
+2. "Open folder as vault" → select `~/Documents/2ndBrain/2ndBrainVault/`
+3. The vault is now synced — any changes you make in Obsidian will be
+   pushed to Google Drive within 30 seconds
 
 ## Next steps
 
