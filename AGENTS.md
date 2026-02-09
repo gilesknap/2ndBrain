@@ -1,5 +1,28 @@
 # 2ndBrain Collector Agent Instructions
 
+## Terminal Tool Usage
+
+When using the `run_in_terminal` tool:
+
+- The tool result may show only a minimal acknowledgment (e.g., `#` with a timestamp) rather than the actual command output
+- **ALWAYS** use `terminal_last_command` tool afterward to retrieve the actual output if the `run_in_terminal` result appears empty or truncated
+- Check the exit code in the context to determine if the command succeeded before assuming failure
+
+**CRITICAL: Avoid repeating commands**
+
+- The `<context>` block at the start of each user message contains terminal state including:
+  - `Last Command`: The command that was run
+  - `Exit Code`: Whether it succeeded (0) or failed
+- **BEFORE** running a command, check if the context already shows it ran successfully
+- **NEVER** re-run a command that the context shows already completed with exit code 0
+- If you need the output and the context doesn't show it, use `terminal_last_command` once - do not re-run the command
+
+**Common mistake to avoid:**
+- ❌ Run command → Get minimal output → Try to run same command again
+- ✅ Run command → Get minimal output → Check context for exit code → Use `terminal_last_command` to get full output
+- The `run_in_terminal` tool often returns minimal acknowledgment, but the command still executed successfully
+- Always check the context in the next turn - if Exit Code: 0, the command succeeded; just get the output with `terminal_last_command`
+
 ## Purpose
 A Slack-driven quick-capture system that uses Gemini AI to classify, enrich,
 and file notes into an Obsidian vault. The user sends messages (text,
@@ -17,7 +40,8 @@ structured Markdown with YAML frontmatter into the correct vault folder.
 - **Vault storage:** rclone to Google Drive at `~/Documents/2ndBrain/`
   (vault root: `~/Documents/2ndBrain/2ndBrainVault/`)
 - **Service manager:** systemd user units (no sudo required)
-- **Secrets:** GPG + `pass` for rclone config encryption
+- **Secrets:** `systemd-creds` (systemd ≥ 256) or GPG + `pass` (fallback)
+  for rclone config encryption
 
 ## Deployment Modes
 The system supports two deployment modes via `install.sh`:
@@ -74,16 +98,20 @@ docs/
 │   └── decisions.md           # Architecture Decision Records (ADRs)
 ├── how-to/
 │   ├── contribute.md          # Contributing guide
-│   ├── setup_rclone.md        # rclone + GPG/pass setup guide
+│   ├── setup_rclone.md        # rclone setup guide
 │   └── setup_slack_app.md     # Slack app creation + OAuth scopes guide
 └── tutorials/
     └── installation.md        # Installation tutorial
 migrate_old_vault/
 ├── migrate_prompt.md          # System prompt for AI-assisted vault migration
 └── migrate_vault.py           # Standalone script for migrating an old vault
-install.sh           # Two-mode installer (--server / --workstation)
-setup-gpg-pass.sh    # GPG key, pass, keygrip preset automation
-restart.sh           # Convenience script for systemd reload/restart/logs
+scripts/
+├── install.sh       # Two-mode installer (--server / --workstation)
+├── uninstall.sh     # Remove services and credential stores
+├── setup-systemd-creds.sh # Encrypt rclone password via systemd-creds (≥256)
+├── setup-gpg-pass.sh    # GPG + pass fallback for older systemd
+├── start-brain.sh       # Unlock GPG and start services (GPG mode only)
+└── restart.sh           # Convenience script for systemd reload/restart/logs
 Dockerfile           # Container build for the Slack listener
 pyproject.toml       # uv/pip metadata and dependencies
 .env                 # Runtime secrets (not committed)
@@ -327,8 +355,10 @@ Delete the old `.base` file from the vault to trigger regeneration.
 ### rclone-2ndbrain.service (server only)
 - FUSE mount with `--vfs-cache-mode full`, `--poll-interval 15s`,
   `--dir-cache-time 5s`.
-- Uses `--password-command "pass rclone/gdrive-vault"` — requires
-  GPG/pass infrastructure (see `setup-gpg-pass.sh`).
+- Uses `--password-command` to read the rclone config password.
+  The command varies by credential method:
+  - **systemd-creds:** `systemd-creds decrypt --user --name=rclone-config-pass ~/.config/2ndbrain/rclone-config-pass.cred -`
+  - **GPG + pass:** `pass rclone/gdrive-vault`
 - `ExecStop` does a clean `fusermount -u`.
 
 ### rclone-2ndbrain-bisync.service + .timer (workstation only)
@@ -342,23 +372,27 @@ connected"), use: `fusermount -uz ~/Documents/2ndBrain` then restart
 the service.
 
 ## Installation
-1. **GPG + pass:** Run `./setup-gpg-pass.sh` first on any new machine.
-   This creates the GPG key, password store, and keygrip preset needed
-   for rclone to decrypt its config non-interactively.
-2. **rclone remote:** Configure via `rclone config` — see
+1. **rclone remote:** Configure via `rclone config` — see
    `docs/setup_rclone.md`.
-3. **Install services:** `./install.sh --server` or `./install.sh --workstation`.
+2. **Install services:** `./scripts/install.sh --server` or `./scripts/install.sh --workstation`.
+3. **Set up credentials (pick one):**
+   - **systemd ≥ 256:** `./scripts/setup-systemd-creds.sh` — encrypts the rclone
+     password so services auto-start on boot.
+   - **Older systemd:** `./scripts/setup-gpg-pass.sh` — stores the password in
+     GPG-encrypted `pass`. After each reboot, run `./scripts/start-brain.sh`.
 4. **Slack app (server only):** Create the app and get tokens — see
    `docs/setup_slack_app.md`. Fill in `.env` from `.env.template`.
 5. **Enable linger (server only):** `sudo loginctl enable-linger $USER`
    so services run on boot without a login session.
+6. **Uninstall:** `./scripts/uninstall.sh` removes services and credentials
+   (useful for re-testing deployment from scratch).
 
 ## Common Workflows
 - **After any code change:** Always run
   `uv run ruff check --fix; uv run pyright tests src` to lint and
   type-check before committing.
 - **Update code:** After modifying any `src/brain/*.py` file, run
-  `systemctl --user restart brain.service` or use `./restart.sh`.
+  `systemctl --user restart brain.service` or use `./scripts/restart.sh`.
 - **Monitor logs:** `journalctl --user -u brain.service -f`
 - **Check rclone (server):** Ensure the mount is active at
   `~/Documents/2ndBrain/` before attempting file operations.
@@ -372,10 +406,10 @@ the service.
 - **Change the daily briefing time:** Set `BRIEFING_TIME=08:00` in `.env`.
   Set `BRIEFING_CHANNEL` to a Slack channel ID to enable it.
 - **Install deps:** `uv sync` (not pip install)
-- **Migrate to new machine:** Copy `~/.gnupg/`, `~/.password-store/`,
-  and `~/.config/rclone/rclone.conf` from the old machine, then run
-  `./setup-gpg-pass.sh` and `./install.sh`. See `docs/setup_rclone.md`
-  section 6 for details.
+- **Migrate to new machine:** Copy `~/.config/rclone/rclone.conf` from
+  the old machine, then run `./scripts/install.sh` and the appropriate credential
+  setup script. For GPG mode, also copy `~/.gnupg/` and
+  `~/.password-store/`. See `docs/setup_rclone.md` for details.
 
 ## Environment Variables (.env)
 | Variable          | Required | Description                                |
