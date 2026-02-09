@@ -63,6 +63,12 @@
             "source": "devcontainer-shared-cache",
             "target": "/cache",
             "type": "volume"
+        },
+        // Mount the Obsidian vault for configuration and testing
+        {
+            "source": "${localEnv:HOME}/Documents/2ndBrain",
+            "target": "/root/Documents/2ndBrain",
+            "type": "bind"
         }
     ],
     // Mount the parent as /workspaces so we can pip install peers as editable
