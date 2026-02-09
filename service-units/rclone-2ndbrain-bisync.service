@@ -4,8 +4,17 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+# Auto-resync on first run if bisync state doesn't exist
+ExecStartPre=/bin/bash -c 'if [ ! -d %h/.cache/rclone/bisync ] || [ -z "$(ls -A %h/.cache/rclone/bisync 2>/dev/null)" ]; then \
+  echo "No bisync state found - performing initial resync from Google Drive..."; \
+  /usr/bin/rclone bisync gdrive-vault: %h/Documents/2ndBrain \
+    --password-command "@@RCLONE_PASSWORD_CMD@@" \
+    --resync \
+    --create-empty-src-dirs; \
+fi'
 ExecStart=/usr/bin/rclone bisync gdrive-vault: %h/Documents/2ndBrain \
   --password-command "@@RCLONE_PASSWORD_CMD@@" \
   --resilient \
   --recover \
-  --conflict-resolve newer
+  --conflict-resolve newer \
+  --create-empty-src-dirs
