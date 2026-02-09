@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2ndBrain — Gemini-Powered Quick Capture for Obsidian &#8212; 2ndBrain 0.1.1.dev18+g0f50d88c5 documentation</title>
+    <title>2ndBrain — Gemini-Powered Quick Capture for Obsidian &#8212; 2ndBrain 0.1.1.dev23+g321ebabfe documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=bb9abd1c"></script>
+    <script src="_static/documentation_options.js?v=0c0b04ef"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -475,6 +475,7 @@ Projects, Actions, Media, Reference, and a master Dashboard</p></li>
 </div>
 <p>See <a class="reference internal" href="explanations/architecture.html"><span class="std std-doc">Architecture</span></a> for the full design.</p>
 <p>See <a class="reference internal" href="reference/prompts.html"><span class="std std-doc">Prompts</span></a> for the Gemini system instructions.</p>
+<p>See <a class="reference internal" href="explanations/security.html"><span class="std std-doc">Security</span></a> for the threat model and hardening guide.</p>
 </section>
 <section id="tech-stack">
 <h2>Tech Stack<a class="headerlink" href="#tech-stack" title="Link to this heading">#</a></h2>
@@ -501,7 +502,7 @@ Projects, Actions, Media, Reference, and a master Dashboard</p></li>
 <td><p>systemd user units (no root required)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Secrets</p></td>
-<td><p>GPG + <code class="docutils literal notranslate"><span class="pre">pass</span></code> for rclone config encryption</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">systemd-creds</span></code> (≥ 256) or GPG + <code class="docutils literal notranslate"><span class="pre">pass</span></code> fallback</p></td>
 </tr>
 </tbody>
 </table>
@@ -573,6 +574,7 @@ full <a class="reference external" href="https://gilesknap.github.io/2ndBrain">d
 <li class="toctree-l1"><a class="reference internal" href="explanations.html">Explanations</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="explanations/architecture.html">Agent Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="explanations/decisions.html">Architectural Decision Records</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explanations/security.html">Security</a></li>
 </ul>
 </li>
 </ul>

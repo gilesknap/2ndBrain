@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Quick Start &#8212; 2ndBrain 0.1.1.dev18+g0f50d88c5 documentation</title>
+    <title>Quick Start &#8212; 2ndBrain 0.1.1.dev23+g321ebabfe documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=bb9abd1c"></script>
+    <script src="../_static/documentation_options.js?v=0c0b04ef"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -509,35 +509,19 @@ uv<span class="w"> </span>sync
 </pre></div>
 </div>
 </section>
-<section id="set-up-gpg-pass">
-<h2>2. Set up GPG + pass<a class="headerlink" href="#set-up-gpg-pass" title="Link to this heading">#</a></h2>
-<p>The rclone configuration is encrypted with GPG. Run the automated setup
-script (first time only):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./setup-gpg-pass.sh
-</pre></div>
-</div>
-<p>This creates a GPG key, initialises the <code class="docutils literal notranslate"><span class="pre">pass</span></code> password store, and
-configures <code class="docutils literal notranslate"><span class="pre">gpg-agent</span></code> for non-interactive decryption. See
-<a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a> for manual steps and
-troubleshooting.</p>
-</section>
 <section id="configure-rclone-and-create-the-slack-app">
-<h2>3. Configure rclone and create the Slack app<a class="headerlink" href="#configure-rclone-and-create-the-slack-app" title="Link to this heading">#</a></h2>
+<h2>2. Configure rclone and create the Slack app<a class="headerlink" href="#configure-rclone-and-create-the-slack-app" title="Link to this heading">#</a></h2>
 <p>These two steps can be done in any order:</p>
-<ul>
+<ul class="simple">
+<li><p><strong>rclone</strong> — This can be done for you by the <code class="docutils literal notranslate"><span class="pre">scripts/install.sh</span></code> script (see below).
+See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a> for detailed instructions.</p></li>
 <li><p><strong>Slack app</strong> — Create a Socket Mode app with the required OAuth scopes.
 See <a class="reference internal" href="../how-to/setup_slack_app.html"><span class="std std-doc">Slack App Setup</span></a> for the full
 walkthrough.</p></li>
-<li><p><strong>rclone</strong> — This can be done for you by the install script (see below).
-See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a> for detailed instructions.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rclone<span class="w"> </span>config
-</pre></div>
-</div>
-</li>
 </ul>
 </section>
 <section id="configure-environment-variables">
-<h2>4. Configure environment variables<a class="headerlink" href="#configure-environment-variables" title="Link to this heading">#</a></h2>
+<h2>3. Configure environment variables<a class="headerlink" href="#configure-environment-variables" title="Link to this heading">#</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>.env.template<span class="w"> </span>.env
 </pre></div>
 </div>
@@ -583,13 +567,13 @@ See <a class="reference internal" href="../how-to/setup_rclone.html"><span class
 </div>
 </section>
 <section id="deploy">
-<h2>5. Deploy<a class="headerlink" href="#deploy" title="Link to this heading">#</a></h2>
+<h2>4. Deploy<a class="headerlink" href="#deploy" title="Link to this heading">#</a></h2>
 <p>Choose the deployment mode that matches your machine:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Headless server: rclone FUSE mount + Slack listener</span>
-./install.sh<span class="w"> </span>--server
+./scripts/install.sh<span class="w"> </span>--server
 
 <span class="c1"># Desktop with Obsidian: rclone bisync (no listener)</span>
-./install.sh<span class="w"> </span>--workstation
+./scripts/install.sh<span class="w"> </span>--workstation
 </pre></div>
 </div>
 <p>For the server mode, enable linger so the service starts on boot:</p>
@@ -597,9 +581,51 @@ See <a class="reference internal" href="../how-to/setup_rclone.html"><span class
 </pre></div>
 </div>
 </section>
+<section id="set-up-credential-encryption">
+<h2>5. Set up credential encryption<a class="headerlink" href="#set-up-credential-encryption" title="Link to this heading">#</a></h2>
+<p>The rclone configuration is encrypted at rest and needs a password at
+runtime. The service units must be installed (step 4) before this step.
+Two backends are supported — check which one your system can use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--version<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</pre></div>
+</div>
+<section id="systemd-256-systemd-creds">
+<h3>systemd ≥ 256 → <code class="docutils literal notranslate"><span class="pre">systemd-creds</span></code><a class="headerlink" href="#systemd-256-systemd-creds" title="Link to this heading">#</a></h3>
+<p>If the version is <strong>256 or higher</strong>, use the hardware-backed credential
+encryption:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./scripts/setup-systemd-creds.sh
+</pre></div>
+</div>
+<p>This encrypts the rclone password to the host’s TPM/credential key and
+injects it into the installed service units. Services auto-start on boot
+with no manual unlock needed.</p>
+</section>
+<section id="systemd-256-gpg-pass">
+<h3>systemd &lt; 256 → GPG + <code class="docutils literal notranslate"><span class="pre">pass</span></code><a class="headerlink" href="#systemd-256-gpg-pass" title="Link to this heading">#</a></h3>
+<p>On older systemd (Ubuntu 24.04 = 255, RHEL 9 ≈ 252), fall back to GPG:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./scripts/setup-gpg-pass.sh
+</pre></div>
+</div>
+<p>This creates a GPG key, initialises the <code class="docutils literal notranslate"><span class="pre">pass</span></code> password store, and
+stores the rclone config password. <strong>Services are not auto-enabled</strong> in
+this mode — after each reboot you must unlock GPG and start them
+manually with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./scripts/start-brain.sh
+</pre></div>
+</div>
+<p>This prompts for your GPG passphrase, caches it in <code class="docutils literal notranslate"><span class="pre">gpg-agent</span></code>, and
+starts the appropriate services for your deployment mode.</p>
+<p>See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a> for manual steps and
+troubleshooting.</p>
+</section>
+</section>
 <section id="verify-it-s-running">
 <h2>Verify it’s running<a class="headerlink" href="#verify-it-s-running" title="Link to this heading">#</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>brain.service
+<section id="server">
+<h3>Server<a class="headerlink" href="#server" title="Link to this heading">#</a></h3>
+<p>Check that both the rclone mount and the brain listener are active:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>rclone-2ndbrain.service
+systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>brain.service
 journalctl<span class="w"> </span>--user<span class="w"> </span>-u<span class="w"> </span>brain.service<span class="w"> </span>-f
 </pre></div>
 </div>
@@ -610,6 +636,18 @@ journalctl<span class="w"> </span>--user<span class="w"> </span>-u<span class="w
 </div>
 <p>Send a DM to your bot in Slack — it should respond and file the note
 into the vault.</p>
+</section>
+<section id="workstation">
+<h3>Workstation<a class="headerlink" href="#workstation" title="Link to this heading">#</a></h3>
+<p>Check that the bisync timer is firing:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--user<span class="w"> </span>list-timers<span class="w"> </span>rclone-2ndbrain-bisync.timer
+systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>rclone-2ndbrain-bisync.service
+</pre></div>
+</div>
+<p>The timer should show a <code class="docutils literal notranslate"><span class="pre">LAST</span></code> trigger within the last 30 seconds. Open
+Obsidian and confirm the vault folder appears at
+<code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain/2ndBrainVault/</span></code>.</p>
+</section>
 </section>
 <section id="next-steps">
 <h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
@@ -674,11 +712,19 @@ cooking recipes with #cooking”</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-and-workstation">Server and workstation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-and-install">1. Clone and install</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-gpg-pass">2. Set up GPG + pass</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-rclone-and-create-the-slack-app">3. Configure rclone and create the Slack app</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-environment-variables">4. Configure environment variables</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deploy">5. Deploy</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verify-it-s-running">Verify it’s running</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-rclone-and-create-the-slack-app">2. Configure rclone and create the Slack app</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-environment-variables">3. Configure environment variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deploy">4. Deploy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-credential-encryption">5. Set up credential encryption</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#systemd-256-systemd-creds">systemd ≥ 256 → <code class="docutils literal notranslate"><span class="pre">systemd-creds</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#systemd-256-gpg-pass">systemd &lt; 256 → GPG + <code class="docutils literal notranslate"><span class="pre">pass</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verify-it-s-running">Verify it’s running</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#server">Server</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#workstation">Workstation</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
 </ul>
   </nav></div>

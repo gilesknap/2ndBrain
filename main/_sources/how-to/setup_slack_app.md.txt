@@ -98,7 +98,7 @@ Start the service and check the logs:
 
 ```bash
 cd ~/2nd_brain
-./restart.sh
+./scripts/restart.sh
 # or manually:
 systemctl --user restart brain.service
 journalctl --user -u brain.service -f

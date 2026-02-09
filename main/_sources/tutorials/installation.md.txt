@@ -26,8 +26,8 @@ $ uv run brain --version
 Use the included installer for either server or workstation mode:
 
 ```
-$ ./install.sh --server       # Headless: rclone FUSE mount + Slack listener
-$ ./install.sh --workstation  # Desktop:  rclone bisync for Obsidian
+$ ./scripts/install.sh --server       # Headless: rclone FUSE mount + Slack listener
+$ ./scripts/install.sh --workstation  # Desktop:  rclone bisync for Obsidian
 ```
 
 See the [README](https://github.com/gilesknap/2ndBrain#readme) for full

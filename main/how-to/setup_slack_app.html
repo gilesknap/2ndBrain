@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Slack App Setup &#8212; 2ndBrain 0.1.1.dev18+g0f50d88c5 documentation</title>
+    <title>Slack App Setup &#8212; 2ndBrain 0.1.1.dev23+g321ebabfe documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=bb9abd1c"></script>
+    <script src="../_static/documentation_options.js?v=0c0b04ef"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -592,7 +592,7 @@ root (<code class="docutils literal notranslate"><span class="pre">~/2nd_brain/.
 <h2>8. Test the Connection<a class="headerlink" href="#test-the-connection" title="Link to this heading">#</a></h2>
 <p>Start the service and check the logs:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/2nd_brain
-./restart.sh
+./scripts/restart.sh
 <span class="c1"># or manually:</span>
 systemctl<span class="w"> </span>--user<span class="w"> </span>restart<span class="w"> </span>brain.service
 journalctl<span class="w"> </span>--user<span class="w"> </span>-u<span class="w"> </span>brain.service<span class="w"> </span>-f
