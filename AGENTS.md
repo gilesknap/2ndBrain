@@ -364,7 +364,11 @@ Delete the old `.base` file from the vault to trigger regeneration.
 ### rclone-2ndbrain-bisync.service + .timer (workstation only)
 - `Type=oneshot` — runs bisync and exits (fired by timer every 30s).
 - `--resilient --recover --conflict-resolve newer` for robustness.
-- First run needs `--resync` to establish baseline (handled by `install.sh`).
+- **Initial sync:** `ExecStartPre` checks for bisync state and runs
+  `--resync` automatically on first execution to establish the baseline
+  from Google Drive. No manual intervention needed.
+- The vault is downloaded to `~/Documents/2ndBrain/2ndBrainVault/` on
+  the first run.
 
 ### Stale mount recovery
 If rclone crashes and leaves a dead FUSE mount ("Transport endpoint not

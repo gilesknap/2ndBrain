@@ -246,11 +246,14 @@ if [[ "${MODE}" == "server" ]]; then
         fi
     fi
 else
-    # Workstation: run initial bisync with --resync if no prior state
-    BISYNC_STATE="${HOME}/.cache/rclone/bisync"
+    # Workstation: rclone bisync on a timer
+
     if [[ "${CRED_METHOD}" == "gpg" ]]; then
         echo "→ Enabling bisync timer (will start via ./scripts/start-brain.sh)..."
         systemctl --user enable rclone-2ndbrain-bisync.timer
+        echo
+        echo "⚠  Initial vault sync: The first bisync run will download the vault"
+        echo "   from Google Drive to ~/Documents/2ndBrain/2ndBrainVault/"
         echo
         echo "⚠  GPG credential method — services will not auto-start."
         echo "   After each reboot, run:"
@@ -262,14 +265,38 @@ else
             echo "→ Service units installed. Now run:"
             echo "    ./scripts/setup-systemd-creds.sh"
             echo "  to encrypt the rclone config password and start the timer."
+            echo
+            echo "  The initial sync will download the vault from Google Drive to:"
+            echo "    ~/Documents/2ndBrain/2ndBrainVault/"
         else
-            echo "→ Enabling bisync timer..."
+            echo "→ Enabling and starting bisync timer..."
             systemctl --user enable rclone-2ndbrain-bisync.timer
 
-            if [[ ! -d "${BISYNC_STATE}" ]] || [[ -z "$(ls -A "${BISYNC_STATE}" 2>/dev/null)" ]]; then
-                echo "→ Running initial bisync (--resync to establish baseline)..."
-                systemctl --user start rclone-2ndbrain-bisync.service
-                echo "  Baseline sync triggered."
+            # Trigger the first sync manually so the user sees immediate feedback
+            echo "→ Running initial bisync..."
+            echo "  (The service will auto-resync if this is the first run)"
+            systemctl --user start rclone-2ndbrain-bisync.service
+
+            # Wait for the service to complete (with timeout)
+            echo "  Waiting for sync to complete..."
+            timeout=120
+            elapsed=0
+            while systemctl --user is-active --quiet rclone-2ndbrain-bisync.service; do
+                sleep 2
+                elapsed=$((elapsed + 2))
+                if [[ $elapsed -ge $timeout ]]; then
+                    echo "  ⚠  Initial sync is taking longer than expected..."
+                    echo "     Check status with: journalctl --user -u rclone-2ndbrain-bisync.service -f"
+                    break
+                fi
+            done
+
+            # Check if it completed successfully
+            if systemctl --user is-failed --quiet rclone-2ndbrain-bisync.service; then
+                echo "  ⚠  Initial sync failed. Check logs:"
+                echo "     journalctl --user -u rclone-2ndbrain-bisync.service --no-pager"
+            elif [[ $elapsed -lt $timeout ]]; then
+                echo "  ✓ Initial sync complete."
             fi
 
             echo "→ Starting bisync timer..."
@@ -279,6 +306,9 @@ else
             echo "✓ Bisync timer is running (every 30s). Check status with:"
             echo "    systemctl --user status rclone-2ndbrain-bisync.timer"
             echo "    systemctl --user list-timers"
+            echo
+            echo "  Your vault is at: ~/Documents/2ndBrain/2ndBrainVault/"
+            echo "  Open it in Obsidian to start using your 2ndBrain."
         fi
     fi
 fi
