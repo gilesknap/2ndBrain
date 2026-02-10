@@ -15,6 +15,8 @@ The system has two roles that can run on separate machines:
   **multiple** workstations (laptop, desktop, etc.) — they all sync
   through Google Drive.
 
+We recommend using a dedicated server for the Slack listener and vault sync, but it's possible to run both roles on the same machine if that is all you have available. In this case just point your Obsidian vault to the local rclone mount instead of a bisync folder.
+
 The server needs to be always-on so it can receive Slack messages at any
 time. Good options include:
 
@@ -35,12 +37,6 @@ that sleeps is fine.
 - A Google account (for Google Drive sync via rclone)
 - A Slack workspace where you can create apps
 
-```{important}
-**RHEL/CentOS 8 users**: The default repository has rclone 1.57.0, which
-lacks the `bisync` command. You must upgrade to a newer version. See
-[rclone Setup: RHEL/CentOS 8 Upgrade](../how-to/setup_rclone.md) for instructions.
-```
-
 ## 1. Clone and install
 
 ```bash
@@ -59,10 +55,19 @@ uv run brain --version
 
 These two steps can be done in any order:
 
-- **rclone** — This can be done for you by the `scripts/install.sh` script (see below).
-  See [rclone Setup](../how-to/setup_rclone.md) for detailed instructions.
+- **rclone (for the server only)** — The initial setup with Google Drive OAuth is a
+  one-time step done only on your **server** machine.
 
-- **Slack app** — Create a Socket Mode app with the required OAuth scopes.
+  - See [Rclone Setup](../how-to/setup_rclone.md) for the walkthrough.
+  - Once the server has an encrypted `rclone.conf`, each workstation only need
+    to scp the rclone.config file.
+
+    ```bash
+    scp user@server:~/.config/rclone/rclone.conf ~/.config/rclone
+    ```
+
+- **Slack app** — Also for initial setup only. Create a Socket Mode app with
+  the required OAuth scopes.
   See [Slack App Setup](../how-to/setup_slack_app.md) for the full
   walkthrough.
 
@@ -87,6 +92,7 @@ Optional settings:
 | `BRIEFING_CHANNEL` | *(none)* | Slack channel ID for daily briefing |
 | `BRIEFING_TIME`    | `07:00`  | Time for the daily briefing       |
 
+(deploy)=
 ## 4. Deploy
 
 Choose the deployment mode that matches your machine:
@@ -107,8 +113,10 @@ sudo loginctl enable-linger $USER
 
 ## 5. Set up credential encryption
 
-The rclone configuration is encrypted at rest and needs a password at
-runtime. The service units must be installed (step 4) before this step.
+The rclone configuration is encrypted at rest (by rclone itself with the
+password you created in step 2). However, at runtime the service needs to
+provide that password to rclone. This step secures that runtime password.
+
 Two backends are supported — check which one your system can use:
 
 ```bash
@@ -148,8 +156,9 @@ manually with:
 This prompts for your GPG passphrase, caches it in `gpg-agent`, and
 starts the appropriate services for your deployment mode.
 
-See [rclone Setup](../how-to/setup_rclone.md) for manual steps and
-troubleshooting.
+See [Rclone Setup](../how-to/setup_rclone.md) for the initial OAuth
+configuration (servers only) and see the [Slack App Setup](../how-to/setup_slack_app.md)
+for creating the Socket Mode app.
 
 ## Verify it's running
 
@@ -205,12 +214,8 @@ You can watch the sync progress:
 journalctl --user -u rclone-2ndbrain-bisync.service -f
 ```
 
-Once the vault folder exists, open it in Obsidian:
-
-1. Launch Obsidian
-2. "Open folder as vault" → select `~/Documents/2ndBrain/2ndBrainVault/`
-3. The vault is now synced — any changes you make in Obsidian will be
-   pushed to Google Drive within 30 seconds
+Once the vault folder exists, see [Obsidian Setup](../how-to/setup_obsidian.md)
+for installation, plugin configuration, and usage instructions.
 
 ## Next steps
 

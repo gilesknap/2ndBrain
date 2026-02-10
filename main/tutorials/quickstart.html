@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Quick Start &#8212; 2ndBrain 0.2.1.dev3+g3fdd01a2b documentation</title>
+    <title>Quick Start &#8212; 2ndBrain 0.2.1.dev19+ge77b70005 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3201c95f"></script>
+    <script src="../_static/documentation_options.js?v=32e9a74b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -476,6 +476,7 @@ so Obsidian can read and edit the notes directly. You can set up
 <strong>multiple</strong> workstations (laptop, desktop, etc.) — they all sync
 through Google Drive.</p></li>
 </ul>
+<p>We recommend using a dedicated server for the Slack listener and vault sync, but it’s possible to run both roles on the same machine if that is all you have available. In this case just point your Obsidian vault to the local rclone mount instead of a bisync folder.</p>
 <p>The server needs to be always-on so it can receive Slack messages at any
 time. Good options include:</p>
 <ul class="simple">
@@ -497,12 +498,6 @@ that sleeps is fine.</p>
 <li><p>A Google account (for Google Drive sync via rclone)</p></li>
 <li><p>A Slack workspace where you can create apps</p></li>
 </ul>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p><strong>RHEL/CentOS 8 users</strong>: The default repository has rclone 1.57.0, which
-lacks the <code class="docutils literal notranslate"><span class="pre">bisync</span></code> command. You must upgrade to a newer version. See
-<a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup: RHEL/CentOS 8 Upgrade</span></a> for instructions.</p>
-</div>
 </section>
 <section id="clone-and-install">
 <h2>1. Clone and install<a class="headerlink" href="#clone-and-install" title="Link to this heading">#</a></h2>
@@ -519,10 +514,21 @@ uv<span class="w"> </span>sync
 <section id="configure-rclone-and-create-the-slack-app">
 <h2>2. Configure rclone and create the Slack app<a class="headerlink" href="#configure-rclone-and-create-the-slack-app" title="Link to this heading">#</a></h2>
 <p>These two steps can be done in any order:</p>
-<ul class="simple">
-<li><p><strong>rclone</strong> — This can be done for you by the <code class="docutils literal notranslate"><span class="pre">scripts/install.sh</span></code> script (see below).
-See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a> for detailed instructions.</p></li>
-<li><p><strong>Slack app</strong> — Create a Socket Mode app with the required OAuth scopes.
+<ul>
+<li><p><strong>rclone (for the server only)</strong> — The initial setup with Google Drive OAuth is a
+one-time step done only on your <strong>server</strong> machine.</p>
+<ul>
+<li><p>See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">Rclone Setup</span></a> for the walkthrough.</p></li>
+<li><p>Once the server has an encrypted <code class="docutils literal notranslate"><span class="pre">rclone.conf</span></code>, each workstation only need
+to scp the rclone.config file.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scp<span class="w"> </span>user@server:~/.config/rclone/rclone.conf<span class="w"> </span>~/.config/rclone
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p><strong>Slack app</strong> — Also for initial setup only. Create a Socket Mode app with
+the required OAuth scopes.
 See <a class="reference internal" href="../how-to/setup_slack_app.html"><span class="std std-doc">Slack App Setup</span></a> for the full
 walkthrough.</p></li>
 </ul>
@@ -574,7 +580,7 @@ walkthrough.</p></li>
 </div>
 </section>
 <section id="deploy">
-<h2>4. Deploy<a class="headerlink" href="#deploy" title="Link to this heading">#</a></h2>
+<span id="id1"></span><h2>4. Deploy<a class="headerlink" href="#deploy" title="Link to this heading">#</a></h2>
 <p>Choose the deployment mode that matches your machine:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Headless server: rclone FUSE mount + Slack listener</span>
 ./scripts/install.sh<span class="w"> </span>--server
@@ -590,9 +596,10 @@ walkthrough.</p></li>
 </section>
 <section id="set-up-credential-encryption">
 <h2>5. Set up credential encryption<a class="headerlink" href="#set-up-credential-encryption" title="Link to this heading">#</a></h2>
-<p>The rclone configuration is encrypted at rest and needs a password at
-runtime. The service units must be installed (step 4) before this step.
-Two backends are supported — check which one your system can use:</p>
+<p>The rclone configuration is encrypted at rest (by rclone itself with the
+password you created in step 2). However, at runtime the service needs to
+provide that password to rclone. This step secures that runtime password.</p>
+<p>Two backends are supported — check which one your system can use:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>systemctl<span class="w"> </span>--version<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
 </pre></div>
 </div>
@@ -622,8 +629,9 @@ manually with:</p>
 </div>
 <p>This prompts for your GPG passphrase, caches it in <code class="docutils literal notranslate"><span class="pre">gpg-agent</span></code>, and
 starts the appropriate services for your deployment mode.</p>
-<p>See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">rclone Setup</span></a> for manual steps and
-troubleshooting.</p>
+<p>See <a class="reference internal" href="../how-to/setup_rclone.html"><span class="std std-doc">Rclone Setup</span></a> for the initial OAuth
+configuration (servers only) and see the <a class="reference internal" href="../how-to/setup_slack_app.html"><span class="std std-doc">Slack App Setup</span></a>
+for creating the Socket Mode app.</p>
 </section>
 </section>
 <section id="verify-it-s-running">
@@ -670,13 +678,8 @@ vault structure. If you already have notes in the Google Drive folder
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>journalctl<span class="w"> </span>--user<span class="w"> </span>-u<span class="w"> </span>rclone-2ndbrain-bisync.service<span class="w"> </span>-f
 </pre></div>
 </div>
-<p>Once the vault folder exists, open it in Obsidian:</p>
-<ol class="arabic simple">
-<li><p>Launch Obsidian</p></li>
-<li><p>“Open folder as vault” → select <code class="docutils literal notranslate"><span class="pre">~/Documents/2ndBrain/2ndBrainVault/</span></code></p></li>
-<li><p>The vault is now synced — any changes you make in Obsidian will be
-pushed to Google Drive within 30 seconds</p></li>
-</ol>
+<p>Once the vault folder exists, see <a class="reference internal" href="../how-to/setup_obsidian.html"><span class="std std-doc">Obsidian Setup</span></a>
+for installation, plugin configuration, and usage instructions.</p>
 </section>
 </section>
 </section>
