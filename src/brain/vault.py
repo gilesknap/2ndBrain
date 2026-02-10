@@ -14,17 +14,6 @@ from pathlib import Path
 #: Directory containing .base and .md template files shipped with the package.
 _TEMPLATES_DIR = Path(__file__).parent / "vault_templates"
 
-#: Mapping of template filename → vault-relative destination path.
-_TEMPLATE_MAP: dict[str, str] = {
-    "Projects.base": "Projects/Projects.base",
-    "Actions.base": "Actions/Actions.base",
-    "Media.base": "Media/Media.base",
-    "Reference.base": "Reference/Reference.base",
-    "Memories.base": "Memories/Memories.base",
-    "Dashboard.base": "_brain/Dashboard.base",
-    "Dashboard.md": "Dashboard.md",
-}
-
 # Category folders and their descriptions
 CATEGORIES = {
     "Projects": "Project documentation, snippets, whiteboard photos, ideas",
@@ -48,7 +37,7 @@ class Vault:
         )
         self._validate_vault()
         self._ensure_folders()
-        self._ensure_base_files()
+        self._ensure_files()
         self._ensure_brain_dir()
         logging.info("Vault initialised OK at %s", self.base_path)
 
@@ -143,7 +132,8 @@ class Vault:
         Args:
             folder: Category folder name (validated against whitelist).
             slug: Descriptive slug for the filename (e.g. 'fix-garden-fence').
-            content: Full markdown content including YAML frontmatter.
+            content: Full markdown content including YAML frontmatter. Must include
+                a 'date' field in ISO 8601 datetime format (YYYY-MM-DDTHH:MM:SS).
 
         Returns:
             Path to the saved file.
@@ -649,22 +639,29 @@ class Vault:
         return frontmatter
 
     # ------------------------------------------------------------------
-    # Obsidian .base file generation
+    # Obsidian template syncing
     # ------------------------------------------------------------------
 
-    def _ensure_base_files(self):
-        """Copy vault template files when the source is newer or dest is missing."""
-        for template_name, vault_rel in _TEMPLATE_MAP.items():
-            src = _TEMPLATES_DIR / template_name
-            dest = self.base_path / vault_rel
+    def _ensure_files(self):
+        """Copy vault template files when the source is newer or dest is missing.
 
-            if not src.exists():
-                logging.warning("Template not found: %s", src)
+        Discovers all files in vault_templates/ and syncs them to the vault
+        using their relative path as the vault destination.
+        """
+        # Find all template files and sync them
+        for src in _TEMPLATES_DIR.rglob("*"):
+            if not src.is_file():
                 continue
 
-            if dest.exists() and dest.stat().st_mtime >= src.stat().st_mtime:
-                continue  # vault copy is up-to-date
+            # Get relative path from templates dir
+            rel_path = src.relative_to(_TEMPLATES_DIR)
+            dest = self.base_path / rel_path
 
+            # Check if vault copy is up-to-date
+            if dest.exists() and dest.stat().st_mtime >= src.stat().st_mtime:
+                continue
+
+            # Copy with timestamp preservation
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dest)
-            logging.info("Synced vault template: %s", vault_rel)
+            logging.info("Synced vault template: %s", rel_path)

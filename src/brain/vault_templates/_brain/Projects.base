@@ -1,0 +1,27 @@
+filters:
+  and:
+    - file.inFolder("Projects")
+    - file.ext == "md"
+properties:
+  priority:
+    displayName: Priority
+  date:
+    displayName: Date
+  tags:
+    displayName: Tags
+views:
+  - type: table
+    name: All Projects
+    order:
+      - file.name
+      - priority
+      - date
+      - tags
+    sort:
+      - property: date
+        direction: DESC
+      - property: priority
+        direction: ASC
+    columnSize:
+      note.priority: 108
+      note.date: 167

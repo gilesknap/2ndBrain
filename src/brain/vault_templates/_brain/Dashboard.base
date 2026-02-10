@@ -1,0 +1,109 @@
+filters:
+  and:
+    - file.ext == "md"
+properties:
+  category:
+    displayName: Category
+  status:
+    displayName: Status
+  due_date:
+    displayName: Due Date
+  priority:
+    displayName: Priority
+  project:
+    displayName: Project
+  date:
+    displayName: Date
+  note.category:
+    displayName: category
+views:
+  - type: table
+    name: Today's Actions
+    filters:
+      and:
+        - file.inFolder("Actions")
+        - status != "completed"
+        - and:
+            - status != "done"
+            - status != "deferred"
+    order:
+      - file.name
+      - due_date
+      - date
+      - priority
+      - status
+      - project
+    sort:
+      - property: date
+        direction: ASC
+      - property: priority
+        direction: ASC
+    columnSize:
+      note.due_date: 115
+      note.date: 162
+      note.priority: 114
+      note.project: 265
+  - type: table
+    name: Recent Captures
+    filters:
+      and:
+        - file.mtime > now() - "7 days"
+    order:
+      - file.name
+      - date
+      - file.mtime
+      - category
+      - project
+      - tags
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 157
+      file.mtime: 154
+      note.project: 139
+  - type: table
+    name: All Open Actions
+    filters:
+      and:
+        - file.inFolder("Actions")
+        - status != "done"
+        - status != "completed"
+    order:
+      - file.name
+      - due_date
+      - priority
+      - status
+      - project
+    sort:
+      - property: priority
+        direction: ASC
+  - type: table
+    name: Reference
+    filters:
+      and:
+        - category == "Reference"
+    order:
+      - file.name
+      - date
+      - tags
+      - file.mtime
+      - original_path
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 148
+  - type: table
+    name: Projects
+    order:
+      - file.name
+      - date
+      - project
+      - tags
+    sort:
+      - property: date
+        direction: DESC
+    columnSize:
+      note.date: 139
+      note.project: 119

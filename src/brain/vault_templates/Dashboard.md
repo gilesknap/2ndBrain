@@ -1,17 +1,22 @@
+---
+cssclasses: dashboard-full-width
+---
 
 ![[_brain/Dashboard.base]]
 
-> [!abstract]- Projects
-> ![[Projects/Projects.base]]
+![[_brain/Inbox.base]]
 
-> [!abstract]- Actions
-> ![[Actions/Actions.base]]
+> [!important]- Projects
+> ![[_brain/Projects.base]]
 
-> [!abstract]- Media
-> ![[Media/Media.base]]
+> [!question]- Actions
+> ![[_brain/Actions.base]]
 
-> [!abstract]- Reference
-> ![[Reference/Reference.base]]
+> [!example]- Media
+> ![[_brain/Media.base|Media]]
 
-> [!abstract]- Memories
-> ![[Memories/Memories.base]]
+> [!info]- Reference
+> ![[_brain/Reference.base]]
+
+> [!success]- Memories
+> ![[_brain/Memories.base]]

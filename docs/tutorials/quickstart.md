@@ -56,10 +56,15 @@ uv run brain --version
 These two steps can be done in any order:
 
 - **rclone (for the server only)** — The initial setup with Google Drive OAuth is a
-  one-time step done only on your **(only) server** machine. See
-  [Rclone Setup](../how-to/setup_rclone.md) for the full walkthrough.
-  Once the server has an encrypted `rclone.conf`, **workstations only need
-  to scp the config file** — no OAuth setup needed.
+  one-time step done only on your **server** machine.
+
+  - See [Rclone Setup](../how-to/setup_rclone.md) for the walkthrough.
+  - Once the server has an encrypted `rclone.conf`, each workstation only need
+    to scp the rclone.config file.
+
+    ```bash
+    scp user@server:~/.config/rclone/rclone.conf ~/.config/rclone
+    ```
 
 - **Slack app** — Also for initial setup only. Create a Socket Mode app with
   the required OAuth scopes.
@@ -87,6 +92,7 @@ Optional settings:
 | `BRIEFING_CHANNEL` | *(none)* | Slack channel ID for daily briefing |
 | `BRIEFING_TIME`    | `07:00`  | Time for the daily briefing       |
 
+(deploy)=
 ## 4. Deploy
 
 Choose the deployment mode that matches your machine:
