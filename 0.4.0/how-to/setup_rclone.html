@@ -1,0 +1,801 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Rclone Setup: Initial Configuration &#8212; 2ndBrain 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f9f58732" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/setup_rclone';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://gilesknap.github.io/2ndBrain/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.4.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/dls-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Slack App Setup" href="setup_slack_app.html" />
+    <link rel="prev" title="Obsidian Setup" href="setup_obsidian.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.4.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dls-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/dls-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">2ndBrain</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/2ndBrain" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/2ndBrain" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gilesknap/2ndBrain" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/2ndBrain" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contribute to the project</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup_obsidian.html">Obsidian Setup</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Rclone Setup: Initial Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup_slack_app.html">Slack App Setup</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Rclone Setup: Initial Configuration</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="rclone-setup-initial-configuration">
+<h1>Rclone Setup: Initial Configuration<a class="headerlink" href="#rclone-setup-initial-configuration" title="Link to this heading">#</a></h1>
+<p>This guide covers the first-time setup of rclone for 2ndBrain. You only
+need to do this once on your <strong>server machine</strong>. After that, workstations
+can simply copy the encrypted configuration file via <code class="docutils literal notranslate"><span class="pre">scp</span></code>.</p>
+<p>The goal is to:</p>
+<ol class="arabic simple">
+<li><p>Create a restricted OAuth token for a specific Google Drive folder</p></li>
+<li><p>Create an encrypted <code class="docutils literal notranslate"><span class="pre">rclone.conf</span></code> file that 2ndBrain will use</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>GPG is not needed here.</strong> The <code class="docutils literal notranslate"><span class="pre">rclone.conf</span></code> file itself is encrypted
+using rclone’s native encryption feature. GPG is set up separately later
+(in step 5 of the Quick Start) to encrypt the <strong>password</strong> that protects
+the rclone.conf file — that’s a different layer of security for runtime
+access to the config.</p>
+</div>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<p><strong>Minimum rclone version: 1.58.0</strong> (required for <code class="docutils literal notranslate"><span class="pre">bisync</span></code> command)</p>
+<section id="ubuntu-debian-mint">
+<h3>Ubuntu/Debian/Mint<a class="headerlink" href="#ubuntu-debian-mint" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>rclone
+rclone<span class="w"> </span>version<span class="w">  </span><span class="c1"># Verify it&#39;s ≥ 1.58.0</span>
+</pre></div>
+</div>
+</section>
+<section id="rhel-centos-8-upgrade-rclone">
+<h3>RHEL/CentOS 8: Upgrade rclone<a class="headerlink" href="#rhel-centos-8-upgrade-rclone" title="Link to this heading">#</a></h3>
+<p>The RHEL8 repository includes rclone 1.57.0, which lacks the <code class="docutils literal notranslate"><span class="pre">bisync</span></code>
+command. Install the latest version directly from rclone.org:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download and install latest rclone</span>
+curl<span class="w"> </span>https://rclone.org/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>bash
+
+<span class="c1"># Verify version (should be ≥ 1.58.0)</span>
+rclone<span class="w"> </span>version
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<span id="id2"></span><h3>RHEL/CentOS 8: Upgrade rclone<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+</section>
+<section id="fedora-centos-stream">
+<h3>Fedora/CentOS Stream<a class="headerlink" href="#fedora-centos-stream" title="Link to this heading">#</a></h3>
+<p>Newer Fedora releases have rclone ≥ 1.58.0:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>rclone
+
+<span class="c1"># Verify version</span>
+rclone<span class="w"> </span>version
+</pre></div>
+</div>
+</section>
+</section>
+<section id="step-1-create-a-restricted-google-drive-oauth-token">
+<h2>Step 1: Create a Restricted Google Drive OAuth Token<a class="headerlink" href="#step-1-create-a-restricted-google-drive-oauth-token" title="Link to this heading">#</a></h2>
+<p>You need to create a Google Cloud project with restricted access to a
+<strong>single Google Drive folder</strong>. This is safer than using your entire Drive.</p>
+<section id="create-a-google-cloud-project">
+<h3>1.1 Create a Google Cloud Project<a class="headerlink" href="#create-a-google-cloud-project" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Go to <a class="reference external" href="https://console.cloud.google.com/">Google Cloud Console</a></p></li>
+<li><p>Click <strong>Select a Project</strong> → <strong>New Project</strong></p></li>
+<li><p>Name it (e.g., “2ndBrain Vault”)</p></li>
+<li><p>Click <strong>Create</strong></p></li>
+</ol>
+</section>
+<section id="enable-the-google-drive-api">
+<h3>1.2 Enable the Google Drive API<a class="headerlink" href="#enable-the-google-drive-api" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>In the Cloud Console, go to <strong>APIs &amp; Services</strong> → <strong>Enabled APIs &amp; Services</strong></p></li>
+<li><p>Click <strong>+ Enable APIs and Services</strong></p></li>
+<li><p>Search for “Google Drive API”</p></li>
+<li><p>Click it, then click <strong>Enable</strong></p></li>
+</ol>
+</section>
+<section id="create-an-oauth-2-0-credential">
+<h3>1.3 Create an OAuth 2.0 Credential<a class="headerlink" href="#create-an-oauth-2-0-credential" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Go to <strong>APIs &amp; Services</strong> → <strong>Credentials</strong></p></li>
+<li><p>Click <strong>+ Create Credentials</strong> → <strong>OAuth Client ID</strong></p></li>
+<li><p>If prompted, click “Configure Consent Screen” first:</p>
+<ul class="simple">
+<li><p>Choose <strong>External</strong> user type</p></li>
+<li><p>Fill in the app name (e.g., “2ndBrain”)</p></li>
+<li><p>Add your email as a test user</p></li>
+<li><p>Save and continue</p></li>
+</ul>
+</li>
+<li><p>Back on the Credentials page, click <strong>+ Create Credentials</strong> → <strong>OAuth Client ID</strong></p></li>
+<li><p>Choose <strong>Desktop application</strong></p></li>
+<li><p>Name it (e.g., “2ndBrain Rclone”)</p></li>
+<li><p>Click <strong>Create</strong> — you’ll see a client ID and secret</p></li>
+</ol>
+</section>
+<section id="create-a-shared-google-drive-folder">
+<h3>1.4 Create a Shared Google Drive Folder<a class="headerlink" href="#create-a-shared-google-drive-folder" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Go to <a class="reference external" href="https://drive.google.com/">Google Drive</a></p></li>
+<li><p>Create a new folder named <code class="docutils literal notranslate"><span class="pre">2ndBrain-vault</span></code> (or your preferred name)</p></li>
+<li><p>Note its <strong>folder ID</strong> from the URL: <code class="docutils literal notranslate"><span class="pre">https://drive.google.com/drive/folders/FOLDER_ID</span></code></p></li>
+<li><p>You’ll pass this to rclone below</p></li>
+</ol>
+</section>
+</section>
+<section id="step-2-create-the-encrypted-rclone-conf-file">
+<h2>Step 2: Create the Encrypted rclone.conf File<a class="headerlink" href="#step-2-create-the-encrypted-rclone-conf-file" title="Link to this heading">#</a></h2>
+<p>Run <code class="docutils literal notranslate"><span class="pre">rclone</span> <span class="pre">config</span></code> to create and encrypt the configuration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rclone<span class="w"> </span>config
+</pre></div>
+</div>
+<p>Follow the prompts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">n</span><span class="p">)</span> <span class="n">New</span> <span class="n">remote</span>
+<span class="n">name</span><span class="o">&gt;</span> <span class="n">gdrive</span><span class="o">-</span><span class="n">vault</span>
+<span class="n">Storage</span><span class="o">&gt;</span> <span class="n">drive</span>
+<span class="n">client_id</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">paste</span> <span class="n">your</span> <span class="n">OAuth</span> <span class="n">client</span> <span class="n">ID</span><span class="o">&gt;</span>
+<span class="n">client_secret</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">paste</span> <span class="n">your</span> <span class="n">OAuth</span> <span class="n">client</span> <span class="n">secret</span><span class="o">&gt;</span>
+<span class="n">scope</span><span class="o">&gt;</span> <span class="mi">1</span>  <span class="p">(</span><span class="n">Full</span> <span class="n">access</span><span class="p">,</span> <span class="n">we</span><span class="s1">&#39;ll restrict via folder ID below)</span>
+<span class="n">root_folder_id</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">paste</span> <span class="n">your</span> <span class="n">folder</span> <span class="n">ID</span> <span class="kn">from</span><span class="w"> </span><span class="nn">Step</span> <span class="mf">1.4</span><span class="o">&gt;</span>
+<span class="n">service_account_file</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">leave</span> <span class="n">blank</span><span class="o">&gt;</span>
+<span class="n">use_trash</span><span class="o">&gt;</span> <span class="n">y</span>
+<span class="n">config_token</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">leave</span> <span class="n">blank</span><span class="p">,</span> <span class="n">will</span> <span class="n">authorize</span> <span class="n">below</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>When asked if you’d like to authorize with Adv config, say <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>A browser window will open — <strong>sign in with your Google account</strong> and
+grant permission. The token will be saved to <code class="docutils literal notranslate"><span class="pre">rclone.conf</span></code>.</p>
+<section id="encrypt-the-rclone-conf-file">
+<h3>2.1 Encrypt the rclone.conf File<a class="headerlink" href="#encrypt-the-rclone-conf-file" title="Link to this heading">#</a></h3>
+<p>After the config is created, rclone will ask if you want to encrypt it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">encrypt</span> <span class="n">the</span> <span class="n">password</span><span class="o">&gt;</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>You’ll be prompted to enter a <strong>password</strong> to encrypt the config file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Enter</span> <span class="n">password</span> <span class="k">for</span> <span class="n">encryption</span><span class="p">:</span>
+<span class="n">Confirm</span> <span class="n">password</span><span class="p">:</span>
+</pre></div>
+</div>
+<p><strong>Save this password</strong> — you’ll need it later when setting up the
+credential encryption system (GPG or systemd-creds in step 5 of the
+Quick Start).</p>
+<p>The encrypted config is now at <code class="docutils literal notranslate"><span class="pre">~/.config/rclone/rclone.conf</span></code>.</p>
+</section>
+</section>
+<section id="step-3-verify-the-configuration">
+<h2>Step 3: Verify the Configuration<a class="headerlink" href="#step-3-verify-the-configuration" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rclone<span class="w"> </span>lsd<span class="w"> </span>gdrive-vault:
+</pre></div>
+</div>
+<p>You should see the contents of your <code class="docutils literal notranslate"><span class="pre">2ndBrain-vault</span></code> folder. If you see
+your entire Google Drive or an error, check that <code class="docutils literal notranslate"><span class="pre">root_folder_id</span></code> is
+set correctly in the config.</p>
+</section>
+<section id="for-workstations">
+<h2>For Workstations<a class="headerlink" href="#for-workstations" title="Link to this heading">#</a></h2>
+<p>Once the server has a working <code class="docutils literal notranslate"><span class="pre">rclone.conf</span></code>, workstations only need to
+copy it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On the workstation, copy the encrypted config from the server</span>
+scp<span class="w"> </span>user@server:~/.config/rclone/rclone.conf<span class="w"> </span>~/.config/rclone/
+
+<span class="c1"># Ensure correct permissions</span>
+chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/.config/rclone/rclone.conf
+</pre></div>
+</div>
+<p>That’s it — no need to repeat the OAuth setup on each machine. The same
+encrypted config works everywhere.</p>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
+<p>Return to the <a class="reference internal" href="../tutorials/quickstart.html#deploy"><span class="std std-ref">Quick Start Deploy</span></a> to
+install 2ndBrain using <code class="docutils literal notranslate"><span class="pre">./scripts/install.sh</span></code>, then proceed to
+step 5 (credential encryption) where you’ll set up GPG or systemd-creds.</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
+<section id="transport-endpoint-not-connected-stale-mount">
+<h3>“Transport endpoint not connected” (stale mount)<a class="headerlink" href="#transport-endpoint-not-connected-stale-mount" title="Link to this heading">#</a></h3>
+<p>If rclone crashes and leaves a dead FUSE mount:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>fusermount<span class="w"> </span>-uz<span class="w"> </span>~/Documents/2ndBrain
+systemctl<span class="w"> </span>--user<span class="w"> </span>restart<span class="w"> </span>rclone-2ndbrain.service
+</pre></div>
+</div>
+</section>
+<section id="check-rclone-logs">
+<h3>Check rclone logs<a class="headerlink" href="#check-rclone-logs" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>journalctl<span class="w"> </span>--user<span class="w"> </span>-u<span class="w"> </span>rclone-2ndbrain.service<span class="w"> </span>-f
+</pre></div>
+</div>
+</section>
+<section id="verify-the-folder-is-mounted">
+<h3>Verify the folder is mounted<a class="headerlink" href="#verify-the-folder-is-mounted" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls<span class="w"> </span>~/Documents/2ndBrain/
+</pre></div>
+</div>
+<p>If empty or shows an error, check the service status and logs above.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="setup_obsidian.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Obsidian Setup</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="setup_slack_app.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Slack App Setup</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ubuntu-debian-mint">Ubuntu/Debian/Mint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rhel-centos-8-upgrade-rclone">RHEL/CentOS 8: Upgrade rclone</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">RHEL/CentOS 8: Upgrade rclone</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fedora-centos-stream">Fedora/CentOS Stream</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-create-a-restricted-google-drive-oauth-token">Step 1: Create a Restricted Google Drive OAuth Token</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-google-cloud-project">1.1 Create a Google Cloud Project</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enable-the-google-drive-api">1.2 Enable the Google Drive API</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-an-oauth-2-0-credential">1.3 Create an OAuth 2.0 Credential</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-shared-google-drive-folder">1.4 Create a Shared Google Drive Folder</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-create-the-encrypted-rclone-conf-file">Step 2: Create the Encrypted rclone.conf File</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#encrypt-the-rclone-conf-file">2.1 Encrypt the rclone.conf File</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-verify-the-configuration">Step 3: Verify the Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#for-workstations">For Workstations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next Steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting">Troubleshooting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#transport-endpoint-not-connected-stale-mount">“Transport endpoint not connected” (stale mount)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#check-rclone-logs">Check rclone logs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#verify-the-folder-is-mounted">Verify the folder is mounted</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/gilesknap/2ndBrain/edit/0.4.0/docs/how-to/setup_rclone.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/how-to/setup_rclone.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
