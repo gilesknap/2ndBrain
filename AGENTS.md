@@ -489,8 +489,9 @@ The anchor must be on its own line immediately before the heading, using
 the syntax `(anchor-name)=`.
 
 **Linking to an anchor:**
+Note that no path to the file is required in the links as the anchors are global.
 ```markdown
-See the [section title](path/to/file.md#my-anchor-name) for details.
+See the [section title](#my-anchor-name) for details.
 ```
 
 Or within the same file:
