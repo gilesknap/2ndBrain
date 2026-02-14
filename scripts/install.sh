@@ -4,9 +4,13 @@
 # Detects whether this machine is the server (runs the brain listener)
 # or a workstation (just syncs the vault for Obsidian).
 #
-# Credential setup for rclone is handled separately:
-#   - systemd ≥ 256: run ./scripts/setup-systemd-creds.sh (auto-start on boot)
+# Credential setup is handled separately:
+#   - systemd ≥ 256: run ./scripts/setup-systemd-creds.sh (rclone config password)
+#                    run ./scripts/setup-env-creds.sh (.env API keys - REQUIRED)
 #   - Older systemd: run ./scripts/setup-gpg-pass.sh  (manual start via ./scripts/start-brain.sh)
+#                    .env credential encryption not supported - systemd ≥ 256 required
+#
+# DON'T install the brain.service on older systems (systemd < 256)
 #
 # Server mode:   rclone mount + brain.service
 # Workstation:   rclone bisync on a 30s timer
@@ -70,12 +74,34 @@ for cmd in "${REQUIRED_CMDS[@]}"; do
 done
 
 # -----------------------------------------------------------------------
-# 1b. Detect credential method
+# 1b. Check systemd version (≥ 256 REQUIRED for server mode)
 # -----------------------------------------------------------------------
-# systemd-creds --user requires systemd ≥ 256.  Fall back to GPG + pass.
-CRED_METHOD=""
 SYSTEMD_VER=$(systemctl --version 2>/dev/null | head -1 | awk '{print $2}')
 
+# Server mode requires systemd ≥ 256 for API key encryption
+if [[ "${MODE}" == "server" ]]; then
+    if [[ -z "${SYSTEMD_VER}" ]] || [[ "${SYSTEMD_VER}" -lt 256 ]] 2>/dev/null; then
+        echo "ERROR: Server mode requires systemd ≥ 256"
+        echo
+        echo "  Current systemd version: ${SYSTEMD_VER:-unknown}"
+        echo
+        echo "  2ndBrain server requires encrypted API key storage via"
+        echo "  systemd-creds, which is only available in systemd ≥ 256."
+        echo
+        echo "  Upgrade options:"
+        echo "    - Ubuntu: Upgrade to 24.10+ (Noble has systemd 255)"
+        echo "    - Fedora: Upgrade to Fedora 40+"
+        echo "    - Arch: Already has systemd 257+"
+        echo
+        echo "  Or install as workstation mode instead (rclone sync only):"
+        echo "    ./scripts/install.sh --workstation"
+        exit 1
+    fi
+    echo "→ systemd version: ${SYSTEMD_VER} ✓"
+fi
+
+# Workstation mode can use GPG fallback for rclone config
+CRED_METHOD=""
 if [[ "${FORCE_GPG}" == "true" ]]; then
     if command -v pass &>/dev/null; then
         CRED_METHOD="gpg"
@@ -88,14 +114,14 @@ elif command -v systemd-creds &>/dev/null && [[ "${SYSTEMD_VER}" -ge 256 ]] 2>/d
 elif command -v pass &>/dev/null; then
     CRED_METHOD="gpg"
 else
-    echo "ERROR: No supported credential method found."
+    echo "ERROR: No supported credential method found for rclone."
     echo
     echo "  Option 1 (systemd ≥ 256): systemd-creds is used automatically."
     echo "  Option 2 (older systemd): install 'pass' and 'gpg', then run"
     echo "           ./scripts/setup-gpg-pass.sh"
     exit 1
 fi
-echo "→ Credential method: ${CRED_METHOD} (systemd ${SYSTEMD_VER})"
+echo "→ Rclone credential method: ${CRED_METHOD}"
 
 # Set the password command that rclone will use
 if [[ "${CRED_METHOD}" == "systemd-creds" ]]; then
@@ -225,8 +251,9 @@ if [[ "${MODE}" == "server" ]]; then
         if [[ ! -f "${CRED_FILE}" ]]; then
             echo
             echo "→ Service units installed. Now run:"
-            echo "    ./scripts/setup-systemd-creds.sh"
-            echo "  to encrypt the rclone config password and start the services."
+            echo "    ./scripts/setup-systemd-creds.sh    # Encrypt rclone config password"
+            echo "    ./scripts/setup-env-creds.sh        # Encrypt .env API keys (REQUIRED)"
+            echo "  to encrypt credentials and start the services."
         else
             echo "→ Enabling and (re)starting server services..."
             systemctl --user enable rclone-2ndbrain.service

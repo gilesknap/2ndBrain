@@ -5,7 +5,9 @@ Requires=rclone-2ndbrain.service
 
 [Service]
 Type=simple
-EnvironmentFile=@@PROJECT_DIR@@/.env
+# Credentials are loaded by Python code (src.brain.credentials)
+# - systemd-creds encrypted files required (~/.config/2ndbrain/*.cred)
+# - Application will fail to start without encrypted credentials
 Environment=PYTHONUNBUFFERED=1
 ExecStartPre=/bin/bash -c 'for i in $(seq 1 30); do [ -d "%h/Documents/2ndBrain" ] && exit 0; sleep 1; done; echo "Mount not ready"; exit 1'
 ExecStart=@@PROJECT_DIR@@/.venv/bin/python -m src.brain.app

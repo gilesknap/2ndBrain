@@ -13,7 +13,6 @@ classifiers = [
 description = "Agentic Slack capture system for Obsidian vault"
 dependencies = [
     "google-genai>=1.0.0",
-    "python-dotenv>=1.2.1",
     "ruamel.yaml>=0.18.0",
     "slack-bolt>=1.27.0",
     "requests>=2.31.0",

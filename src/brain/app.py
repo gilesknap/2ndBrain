@@ -11,7 +11,6 @@ import logging
 import os
 import sys
 
-from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -21,6 +20,7 @@ from .agents.memory import MemoryAgent
 from .agents.vault_edit import VaultEditAgent
 from .agents.vault_query import VaultQueryAgent
 from .briefing import start_scheduler
+from .credentials import CredentialLoader
 from .listener import register_listeners
 from .vault import Vault
 
@@ -32,27 +32,22 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
-# ---------------------------------------------------------------------------
-# Environment
-# ---------------------------------------------------------------------------
-load_dotenv()
-
-REQUIRED_ENV = ["SLACK_BOT_TOKEN", "SLACK_APP_TOKEN", "GEMINI_API_KEY"]
-
-
-def _validate_env():
-    """Fail fast if any required environment variable is missing."""
-    missing = [k for k in REQUIRED_ENV if not os.environ.get(k, "").strip()]
-    if missing:
-        logging.critical(f"Missing environment variables: {', '.join(missing)}")
-        sys.exit(1)
-
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main():
-    _validate_env()
+    # Load credentials (systemd-creds encrypted files required)
+    try:
+        loader = CredentialLoader()
+        creds = loader.load()
+    except RuntimeError as e:
+        logging.critical(str(e))
+        sys.exit(1)
+
+    # Store Gemini API key in environment for google-genai SDK
+    # (The SDK expects GEMINI_API_KEY in os.environ)
+    os.environ["GEMINI_API_KEY"] = creds.gemini_api_key
 
     # Initialise Vault (creates folders + .base files on first run)
     vault = Vault()
@@ -74,8 +69,8 @@ def main():
         default_agent="file",
     )
 
-    # Initialise Slack app
-    app = App(token=os.environ["SLACK_BOT_TOKEN"])
+    # Initialise Slack app with credentials from secure loader
+    app = App(token=creds.slack_bot_token)
 
     # Wire up event handlers
     register_listeners(app, vault, router)
@@ -85,7 +80,7 @@ def main():
 
     # Start listening
     logging.info("⚡️ 2ndBrain Collector starting up...")
-    handler = SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"])
+    handler = SocketModeHandler(app, creds.slack_app_token)
     handler.start()
 
 

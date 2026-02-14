@@ -42,24 +42,37 @@ flowchart TD
 
 ## 1. Secrets Management
 
-### 1.1 API Keys in `.env` File
+### 1.1 API Keys (systemd-creds Encrypted)
 
-**Risk Level: High**
+**Risk Level: Medium** (mandatory encryption enforced)
 
-Three secrets live in `.env`: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, and
-`GEMINI_API_KEY`. If this file is leaked, an attacker gains full control
-of the Slack bot and the Gemini account's usage quota/billing.
+Three secrets are required: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, and
+`GEMINI_API_KEY`. These must be encrypted using systemd-creds before
+the application can start. If the encrypted `.cred` files are compromised,
+an attacker with access to the same host can decrypt them and gain full
+control of the Slack bot and Gemini account's usage quota/billing.
 
 **Existing mitigations:**
-- `.env` is listed in `.gitignore` (`.env.template` is committed instead)
-- `app.py` validates that required variables are present at startup
-- systemd's `EnvironmentFile=` directive loads secrets without shell history
+- **Mandatory systemd-creds encryption** (systemd ≥ 256 required) — see
+  [Encrypt API Key Credentials](../how-to/encrypt-env-credentials.md)
+- API keys are encrypted at rest in `.cred` files at `~/.config/2ndbrain/`
+- Decryption happens in Python code (not systemd), credentials held only
+  in process memory
+- **No environment variable exposure** — credentials are NOT visible in
+  `/proc/<pid>/environ`
+- Encrypted blobs are useless on a different machine or without the
+  host's TPM/credential key
+- Application refuses to start without encrypted credentials
 
 **Residual risk:**
-- The `.env` file is stored in plaintext on disk — any process running as
-  the same user can read it
-- Environment variables are visible in `/proc/<pid>/environ` to the same
-  UID
+- A compromised user session can call `systemd-creds decrypt` to retrieve
+  the keys (but the attacker needs to know about the `.cred` files, unlike
+  environment variables which are easily discoverable via `/proc/<pid>/environ`)
+- Credentials exist in Python process memory while the app is running
+  (unavoidable for any application that needs to use them)
+- The main benefits are **encryption at rest** + **no environment variable
+  exposure** — protecting backups, disk images, accidental exposure, and
+  eliminating the `/proc/<pid>/environ` attack surface
 
 ### 1.2 rclone Config Encryption
 
@@ -414,7 +427,7 @@ directed to systemd journal.
 
 | Area                            | Risk Level | Key Concern                           |
 |---------------------------------|------------|---------------------------------------|
-| API keys in `.env`              | High       | Plaintext secrets on disk             |
+| API keys (systemd-creds)        | Medium     | Encrypted at rest, no env var exposure |
 | Data sent to Gemini API         | High       | Personal content to third-party AI    |
 | Prompt injection                | Medium     | User-controlled text in AI prompts    |
 | Gemini response validation      | Medium     | Trusted AI output written to disk     |

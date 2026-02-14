@@ -30,12 +30,18 @@ that sleeps is fine.
 
 ## Prerequisites
 
-- Python 3.12 or later
-- [uv](https://docs.astral.sh/uv/) package manager
-- A Linux machine (Ubuntu 24.04 recommended)
+**For all installations:**
+- A Linux machine (Ubuntu 24.10+ or equivalent)
 - **rclone 1.58.0 or later** (required for `bisync` command)
 - A Google account (for Google Drive sync via rclone)
+
+**Server mode only (runs the Slack listener):**
+- Python 3.12 or later
+- [uv](https://docs.astral.sh/uv/) package manager
+- **systemd ≥ 256** (REQUIRED for API key encryption)
 - A Slack workspace where you can create apps
+
+**Workstation mode:** No additional requirements (just rclone + Linux)
 
 ## 1. Clone and install
 
@@ -123,30 +129,34 @@ Two backends are supported — check which one your system can use:
 systemctl --version | head -1
 ```
 
-### systemd ≥ 256 → `systemd-creds`
+### systemd ≥ 256 → `systemd-creds` (REQUIRED)
 
 If the version is **256 or higher**, use the hardware-backed credential
 encryption:
 
 ```bash
-./scripts/setup-systemd-creds.sh
+./scripts/setup-systemd-creds.sh  # rclone config password
+./scripts/setup-env-creds.sh      # API keys (REQUIRED)
 ```
 
-This encrypts the rclone password to the host's TPM/credential key and
-injects it into the installed service units. Services auto-start on boot
-with no manual unlock needed.
+This encrypts both the rclone password and API keys to the host's
+TPM/credential key. Services auto-start on boot with no manual unlock
+needed.
 
-### systemd < 256 → GPG + `pass`
-
-On older systemd (Ubuntu 24.04 = 255, RHEL 9 ≈ 252), fall back to GPG:
-
-```bash
-./scripts/setup-gpg-pass.sh
+```{note}
+**systemd ≥ 256 is now required** to run 2ndBrain. API key encryption
+is mandatory — plaintext `.env` files are not supported.
 ```
 
-This creates a GPG key, initialises the `pass` password store, and
-stores the rclone config password. **Services are not auto-enabled** in
-this mode — after each reboot you must unlock GPG and start them
+### systemd < 256 → Not Supported
+
+```{warning}
+systemd < 256 is **no longer supported**. API key encryption requires
+systemd-creds, which is only available in systemd ≥ 256.
+
+If you're on Ubuntu 24.04 (systemd 255) or RHEL 9 (systemd ≈ 252),
+you must upgrade to a newer OS version before using 2ndBrain.
+```
 manually with:
 
 ```bash

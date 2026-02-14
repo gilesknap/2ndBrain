@@ -71,5 +71,7 @@ lockfiles/
 .ruff_cache/
 
 # sensitive files
+# .env is not used (credentials must be encrypted with systemd-creds)
+# but is ignored to prevent accidental commits during setup
 .env
 migrate_progress.json
