@@ -44,7 +44,8 @@
         }
     },
     // Create the config folder for the bash-config feature and uv cache
-    "initializeCommand": "mkdir -p ${localEnv:HOME}/.config/terminal-config",
+    // also make sure the claude folder is created for claude in devcontainer auth
+    "initializeCommand": "mkdir -p ${localEnv:HOME}/.config/terminal-config ${localEnv:HOME}/.claude",
     "runArgs": [
         // Allow the container to access the host X11 display and EPICS CA
         "--net=host",
@@ -69,6 +70,11 @@
             "source": "${localEnv:HOME}/Documents/2ndBrain",
             "target": "/root/Documents/2ndBrain",
             "type": "bind"
+        },
+        {
+            "source": "${localEnv:HOME}/.claude",
+            "target": "/root/.claude",
+            "type": "bind"
         }
     ],
     // Mount the parent as /workspaces so we can pip install peers as editable
@@ -76,3 +82,14 @@
     // After the container is created, recreate the venv then make pre-commit first run faster
     "postCreateCommand": "uv venv --clear && uv sync && pre-commit install --install-hooks"
 }
+
+// claude code recommendation but I reckon just the .claude should do it
+// {
+//   "features": {
+//     "ghcr.io/devcontainers/features/node:1": {}
+//   },
+//   "postCreateCommand": "npm install -g @anthropic-ai/claude-code",
+//   "mounts": [
+//     "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind"
+//   ]
+// }

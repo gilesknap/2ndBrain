@@ -1,0 +1,14 @@
+// {
+//     "languages": {
+//         "Python": {
+//             "language_servers": ["basedpyright", "ruff"]
+//         }
+//     },
+//     "lsp": {
+//         "basedpyright": {
+//             "settings": {
+//                 "python.pythonPath": "/cache/venv-for/home/giles/code/2ndBrain/bin/python"
+//             }
+//         }
+//     }
+// }
