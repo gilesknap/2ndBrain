@@ -171,7 +171,7 @@ encrypted config works everywhere.
 
 ## Next Steps
 
-Return to the [Quick Start Deploy](#deploy) to
+Return to the [](#deploy) to
 install 2ndBrain using `./scripts/install.sh`, then proceed to
 step 5 (credential encryption) where you'll set up GPG or systemd-creds.
 

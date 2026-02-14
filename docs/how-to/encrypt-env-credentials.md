@@ -118,7 +118,7 @@ rm .env
 ```
 
 **Important:** After deleting `.env`, the only way to recover your keys
-is via `systemd-creds decrypt`. See [Manual Decryption](manual-decryption)
+is via `systemd-creds decrypt`. See [](#manual-decryption)
 below.
 
 ## How It Works
@@ -172,6 +172,7 @@ if not self._has_systemd_creds():
 
 This ensures credentials are never stored in plaintext on disk.
 
+(manual-decryption)=
 ## Manual Decryption
 
 To view or retrieve a credential manually:
